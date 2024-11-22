@@ -7,7 +7,21 @@ import res
 
 PACKAGE_FILE_NAME = "package_file.csv"
 DISTANCE_FILE_NAME = "distance_data.csv"
+LOCATION_FILE_NAME = "locations.csv"
 logger = getLogger(__name__)
+
+
+def get_distance(distance_data: List[Dict], location1: str, location2: str) -> float:
+    data = distance_data
+    if data is None:
+        raise Exception("No distance data available")
+    if location1 == location2:
+        return 0.0
+    for row in data:
+        loc1, loc2 = row['Location1'], row['Location2']
+        if (loc1 == location1 and loc2 == location2) or (loc1 == location2 and loc2 == location1):
+            return float(row['Distance'])
+    return None
 
 
 def ingest_distances_from_file()-> List[Dict]:
@@ -31,13 +45,15 @@ def ingest_packages_from_file() -> List[Dict]:
 
     return packages
 
+def ingest_locations_from_file() -> List[Dict]:
+    location_file_path = os.path.join(str(res.__path__[0]), LOCATION_FILE_NAME)
+    locations = csv_to_dict_list(location_file_path)
 
-def get_distance(data: List[Dict], location1: str, location2: str)-> float:
-    for row in data:
-        loc1, loc2 = row['Location1'], row['Location2']
-        if (loc1 == location1 and loc2 == location2) or (loc1 == location2 and loc2 == location1):
-            return row['Distance']
-    return None
+    logger.info(f"Loaded {len(locations)} locations from CSV")
+    logger.info(f"{locations}")
+
+    return locations
+
 
 
 def csv_to_dict_list(csv_file_path: str)-> List[Dict]:
