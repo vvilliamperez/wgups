@@ -53,7 +53,7 @@ class DeliveryManager:
     def packages_on_trucks(self):
         packages = []
         for truck in self.trucks:
-            packages.extend(truck.packages)
+            packages.extend(truck.packages_on_truck)
         return packages
 
     @property
