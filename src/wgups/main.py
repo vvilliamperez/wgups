@@ -19,12 +19,8 @@ def main()-> None:
     distance_data = ingest_distances_from_file()
     location_data = ingest_locations_from_file()
 
-    # TODO: need to match data in both csvs up
-
     delivery_manager = DeliveryManager(package_data, distance_data, location_data)
-
     delivery_manager.start()
-
     logger.info("All packages delivered")
 
 

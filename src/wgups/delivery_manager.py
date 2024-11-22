@@ -147,6 +147,7 @@ class DeliveryManager:
         minutes = (self.time % 3600) // 60
         seconds = self.time % 60
         logger.info(f"Simulation complete. Time: {hours}:{minutes}:{seconds}")
+        logger.info(f"All {len(self.packages_delivered)} packages delivered")
 
     def pause(self):
         pass

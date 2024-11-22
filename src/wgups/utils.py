@@ -7,7 +7,7 @@ import res
 
 PACKAGE_FILE_NAME = "package_file.csv"
 DISTANCE_FILE_NAME = "distance_data.csv"
-LOCATION_FILE_NAME = "locations.csv"
+LOCATION_FILE_NAME = "location_lookup.csv"
 logger = getLogger(__name__)
 
 
