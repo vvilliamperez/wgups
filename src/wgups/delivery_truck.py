@@ -57,9 +57,8 @@ class DeliveryTruck:
     def deliver(self):
         pkg = self.packages_on_truck.pop(0)
         self.packages_delivered.append(pkg)
-
-        pkg.status = PackageStatus.DELIVERED
-        logger.info(f"Truck {self.truck_id} delivered package {pkg.package_ID} at {pkg.destination}")
+        pkg.delivered()
+        #logger.info(f"Truck {self.truck_id} delivered package {pkg.package_ID} at {pkg.destination}")
 
         self.point_a = pkg.destination
         self.point_b = None
@@ -86,8 +85,9 @@ class DeliveryTruck:
     def start_route(self):
 
         if self.packages_on_truck is None or len(self.packages_on_truck) == 0:
-            logger.warning(f"Truck {self.truck_id} has no packages to deliver")
-        logger.info(f"Truck {self.truck_id} is starting route to {self.packages_on_truck[0].destination}")
+            #logger.warning(f"Truck {self.truck_id} has no packages to deliver")
+            return
+        logger.info(f"Truck {self.truck_id} is starting route to {self.packages_on_truck[0].destination} for package {self.packages_on_truck[0].package_ID}")
         self.status = TruckStatus.EN_ROUTE
         self.point_b = self.packages_on_truck[0].destination
         self.distance_to_next_location_in_miles = get_distance(self.distance_data, self.point_a, self.point_b)

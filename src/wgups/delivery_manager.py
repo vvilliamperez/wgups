@@ -1,16 +1,13 @@
+from copy import copy
 from logging import getLogger
 from typing import List, Dict
 
+from wgups.constants import TRUCK_FLEET_SIZE, DRIVER_CREW_SIZE, START_TIME, SPECIAL_UPDATE_TIME, FLIGHT_ARRIVAL_TIME, \
+    EOD_IN_SECONDS
 from wgups.delivery_truck import DeliveryTruck, TruckStatus
 from wgups.package import PackageStatus, Package
+from wgups.special_route import SpecialRoute
 from wgups.utils import get_distance
-
-TRUCK_FLEET_SIZE = 3
-DRIVER_CREW_SIZE = 2
-
-START_TIME = 32755 # 8:00:00 AM in seconds
-
-SPECIAL_UPDATE_TIME = 37200 # 10:20:00 AM in seconds
 
 logger = getLogger(__name__)
 
@@ -23,12 +20,14 @@ class DeliveryManager:
         self.location_data = location_data
 
         self.packages = []
-        self.initialize_packages()
-
         self.trucks = []
         # Create a fleet of trucks, based on the TRUCK_FLEET_SIZE and DRIVER_CREW_SIZE
         for i in range(min(TRUCK_FLEET_SIZE, DRIVER_CREW_SIZE)):
             self.trucks.append(DeliveryTruck(truck_id=i+1, distance_data=self.distance_data))
+
+        self.total_packages = 0
+        self.initialize_packages()
+
 
         self.time = START_TIME
 
@@ -48,6 +47,11 @@ class DeliveryManager:
     def packages_at_hub(self):
         return [package for package in self.packages if package.status == PackageStatus.AT_HUB]
 
+
+    @property
+    def packages_unavailable(self):
+        return [package for package in self.packages if package.status == PackageStatus.UNAVAILABLE]
+
     @property
     def packages_on_trucks(self):
         packages = []
@@ -64,7 +68,7 @@ class DeliveryManager:
 
 
     def all_packages_delivered(self):
-        return len(self.packages_delivered) == len(self.packages)
+        return [package for package in self.packages if package.status != PackageStatus.DELIVERED] == []
 
     def tick(self, seconds=1):
         """
@@ -79,8 +83,78 @@ class DeliveryManager:
         self.time += seconds
 
         if self.time == SPECIAL_UPDATE_TIME:
-             # Update package 9 - Correct address: 410 S State St., Salt Lake City, UT 84111
-            pass
+             # Update package 9 with revised address
+            revised_address = "410 S State St, Salt Lake City, UT 84111"
+            logger.info("\n\n")
+            logger.warning(f"Special update!! Updating package 9 with revised address: {revised_address}")
+
+            package_9 = [package for package in self.packages if package.package_ID == "9"][0]
+
+            match package_9.status:
+                # if package 9 is delivered, go get it and redeliver
+                case PackageStatus.DELIVERED:
+                    # find truck nearest to package 9
+                    logger.warning("\n\nPackage 9 has already been delivered. Will need to pick up and redeliver.")
+                    logger.info("Finding nearest truck to package 9")
+
+                    nearest_truck = None
+                    nearest_distance = float('inf')
+                    for truck in self.trucks:
+                        distance = get_distance(self.distance_data, truck.point_b, package_9.destination)
+                        if distance < nearest_distance:
+                            nearest_truck = truck
+                            nearest_distance = distance
+                    # add special route to nearest truck
+                    # finishes current delivery, heads to and picks up package 9,
+                    route_to_package_9 = SpecialRoute(package_9.destination, reason="Pick up package 9")
+                    route_to_package_9.truck_id = nearest_truck.truck_id
+                    nearest_truck.packages_on_truck.insert(1,route_to_package_9)
+                    # delivers package 9, continues route
+                    package_9_copy = copy(package_9)
+                    package_9_copy.destination = self.lookup_location(revised_address)
+                    package_9_copy.note_on_delivery = "Delivered after correction!"
+                    nearest_truck.packages_on_truck.insert(2, package_9_copy)
+                    logger.info(f"Truck {nearest_truck.truck_id} is making a special pickup and delivery for package 9")
+                # if package 9 is on truck, update the destination
+                case PackageStatus.ON_TRUCK:
+                    logger.info(f"Package 9 is on truck {package_9.truck_id}.")
+                    logger.warning("Revising routing, but may cause delay")
+                    package_9.destination = self.lookup_location(revised_address)
+                    logger.info(f"Package 9 destination updated to {revised_address}")
+                case PackageStatus.AT_HUB:
+                    logger.info(f"Package 9 is at hub. Updating destination.")
+                    package_9.destination = self.lookup_location(revised_address)
+                    logger.info(f"Package 9 destination updated to {revised_address}")
+                case PackageStatus.IN_TRANSIT:
+                    logger.info(f"Package 9 is in transit on truck {package_9.truck_id}.")
+                    logger.info("Revising routing, but may cause delay.")
+                    package_9.destination = self.lookup_location(revised_address)
+                    logger.info(f"Package 9 destination updated to {revised_address}")
+                case PackageStatus.NEXT_STOP:
+                    logger.info(f"Package 9 is next stop")
+                    package_9.note_on_delivery = "Went to wrong address! Did not deliver."
+                    # Continue to "deliver" package 9, but add a duplicate to the manifest
+                    # so that the truck will deliver the revised package 9
+                    package_9_copy = Package(package_9.package_ID, package_9.destination, package_9.deadline_in_hhmmss, package_9.weight, package_9.notes)
+                    package_9_copy.destination = self.lookup_location(revised_address)
+                    package_9_copy.note_on_delivery = "Delivered after correction!"
+                    self.trucks[package_9.truck_id - 1].load([package_9_copy])
+                case PackageStatus.UNAVAILABLE:
+                    logger.info(f"Package 9 is unavailable.")
+                    logger.info("Revising route..")
+                    package_9.destination = self.lookup_location(revised_address)
+            logger.info(f"Package 9 updated... resuming route! \n\n")
+
+
+        if self.time == FLIGHT_ARRIVAL_TIME:
+            logger.info("\n\n")
+            logger.info("Flight has arrived")
+            # Flight has arrived, mark packages available
+            for package in self.packages_unavailable:
+                package.status = PackageStatus.AT_HUB
+                logger.info(f"Package {package.package_ID} is now available")
+            logger.info("All packages are now available\n\n")
+
 
         if any(truck.status == TruckStatus.AT_HUB for truck in self.trucks):
             self.run_route_algorithm(self.trucks_at_hub)
@@ -88,7 +162,7 @@ class DeliveryManager:
         for truck in self.trucks:
             truck.update(seconds)
 
-        if self.time == 86400:
+        if self.time == EOD_IN_SECONDS:
             raise Exception("Reached midnight! Stopping simulation.")
 
     def lookup_location(self, search_text)-> str:
@@ -98,7 +172,14 @@ class DeliveryManager:
         raise(Exception(f"Location {search_text} not found"))
 
     def run_route_algorithm(self, trucks_to_assign_routes):
-        print(trucks_to_assign_routes)
+        """
+        Assign packages to trucks, based on the remaining packages and the available drivers
+        Based on all available information, assigns packages to be delivered in order to trucks
+
+        :param trucks_to_assign_routes:
+        :return:
+        """
+        # print(trucks_to_assign_routes)
         # Assign packages to trucks, based on the remaining packages and the available drivers
         # Based on all available information, assigns packages to be delivered in order to trucks
 
@@ -107,12 +188,13 @@ class DeliveryManager:
 
         # Assign packages to trucks using a greedy nearest neighbor algorithm
         # The distance is calculated using the distance data
-        packages_at_hub = self.packages_at_hub
+
         for truck in trucks_to_assign_routes:
+            packages_at_hub = self.packages_at_hub
             current_location = truck.point_a
             manifest = []
 
-            while len(manifest) < truck.max_capacity:
+            while len(manifest) < truck.available_capacity:
                 # Find the nearest package
                 nearest_package = None
                 nearest_distance = float('inf')
@@ -120,7 +202,7 @@ class DeliveryManager:
                 for package in packages_at_hub:
                     if package not in manifest:
                         distance = get_distance(self.distance_data, current_location, package.destination)
-                        if float(distance) < float(nearest_distance):
+                        if distance < nearest_distance:
                             nearest_package = package
                             nearest_distance = distance
                 if nearest_package is not None:
@@ -132,7 +214,7 @@ class DeliveryManager:
             truck.load(manifest)
             truck.start_route()
 
-        print(self.packages)
+        #print(self.packages)
 
 
 
@@ -147,7 +229,7 @@ class DeliveryManager:
         minutes = (self.time % 3600) // 60
         seconds = self.time % 60
         logger.info(f"Simulation complete. Time: {hours}:{minutes}:{seconds}")
-        logger.info(f"All {len(self.packages_delivered)} packages delivered")
+        logger.info(f"All {len(self.packages_delivered)} routes ran. ({len(self.packages_delivered)-self.total_packages} extra routes made for special deliveries)")
 
     def pause(self):
         pass
@@ -159,7 +241,23 @@ class DeliveryManager:
             destination = self.lookup_location(data['full_address'])
             package = Package(package_ID=data['Package ID'], destination=destination, deadline_in_hhmmss=data['Delivery Deadline'], weight=data['Mass'], notes=data['Special Notes'])
             self.packages.append(package)
-            logger.info(f"Added package {package.package_ID}")
-        logger.info(f"Added {len(self.packages)} packages")
+            #logger.info(f"Added package {package.package_ID}")
+
+        logger.info(f"Added {len(self.packages)} packages to global system\n\n")
+        self.total_packages = len(self.packages)
+        logger.info("Handling special delivery notes:")
+
+        # Handle special notes
+        packages_with_notes = [package for package in self.packages if package.notes != '']
+        for package in packages_with_notes:
+            match package.notes:
+                case 'Can only be on truck 2':
+                    self.trucks[1].load([package])
+                    logger.info(f"Loaded package {package.package_ID} onto Truck 2")
+                case 'Delayed on flight---will not arrive to depot until 9:05 am':
+                    package.status = PackageStatus.UNAVAILABLE
+                    logger.info(f"Package {package.package_ID} is delayed on a flight and unavailable until 9:05 am")
+                    # Check later if package is available
+        logger.info("All finished with special notes.\n\n")
 
 

@@ -4,6 +4,7 @@ from logging import getLogger
 from typing import Dict, List
 
 import res
+from wgups.constants import EOD_IN_SECONDS
 
 PACKAGE_FILE_NAME = "package_file.csv"
 DISTANCE_FILE_NAME = "distance_data.csv"
@@ -33,11 +34,11 @@ def ingest_distances_from_file()-> List[Dict]:
 
 def ingest_packages_from_file() -> List[Dict]:
     package_file_path = os.path.join(str(res.__path__[0]), PACKAGE_FILE_NAME)
-    logger.info(f" {package_file_path}")
+    #logger.info(f" {package_file_path}")
     packages = csv_to_dict_list(package_file_path)
 
     logger.info(f"Loaded {len(packages)} packages from CSV")
-    logger.info(f"{packages}")
+    #logger.info(f"{packages}")
 
     # Add full_address to each package
     for package in packages:
@@ -50,7 +51,7 @@ def ingest_locations_from_file() -> List[Dict]:
     locations = csv_to_dict_list(location_file_path)
 
     logger.info(f"Loaded {len(locations)} locations from CSV")
-    logger.info(f"{locations}")
+    #logger.info(f"{locations}")
 
     return locations
 
@@ -63,3 +64,14 @@ def csv_to_dict_list(csv_file_path: str)-> List[Dict]:
         for row in csv_reader:
             dict_list.append(row)
     return dict_list
+
+
+def convert_deadline(deadline_in_hhmmss):
+    """
+    Convert the deadline to seconds
+    """
+    if deadline_in_hhmmss == 'EOD':
+        return EOD_IN_SECONDS
+
+    deadline = deadline_in_hhmmss.split(':')
+    return int(deadline[0]) * 3600 + int(deadline[1]) * 60 + int(deadline[2])
