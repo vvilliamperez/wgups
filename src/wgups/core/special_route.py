@@ -1,6 +1,6 @@
 from logging import getLogger
 
-from wgups.package import Package, PackageStatus
+from wgups.core.package import Package, PackageStatus
 
 logger = getLogger(__name__)
 
@@ -21,10 +21,11 @@ class SpecialRoute(Package):
         self.reason = reason
         logger.warning(f"Special Route  created for {self.destination}")
 
-    def delivered(self):
+    def delivered(self, delivery_time):
         logger.warning(f"Truck {self.truck_id} arrived at special location {self.destination}")
         logger.warning(f"Reason: {self.reason}")
         self.status = PackageStatus.DELIVERED
+        self.delivered_at_time = delivery_time
         return self.status
 
 
