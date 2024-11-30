@@ -1,13 +1,12 @@
 # William Perez, STUDENT ID 001438917
 import argparse
 import threading
-import time
 import tkinter as tk
 from tkinter import simpledialog, scrolledtext, messagebox
 import logging
 from logging import getLogger
 from wgups.core.delivery_manager import DeliveryManager
-from wgups.core.utils import ingest_packages_from_file, ingest_distances_from_file, ingest_locations_from_file
+from wgups.utils import ingest_packages_from_file, ingest_distances_from_file, ingest_locations_from_file
 
 logger = getLogger(__name__)
 logging.basicConfig(level=logging.INFO, handlers=[logging.StreamHandler()])
@@ -97,7 +96,7 @@ class WGUPSApp:
         package_id = simpledialog.askstring("Package ID", "Enter the Package ID:")
         if package_id:
             # Get the status of the package
-            package = self.delivery_manager.get_status_for_package_id(package_id)
+            package = self.delivery_manager.lookup_package_data_for_package_id(package_id)
             # Show the result in a dialog box
             messagebox.showinfo("Package Status", f"Package ID: {package_id}\nStatus: {package}")
 
@@ -121,8 +120,11 @@ class WGUPSApp:
             logger.info(f"Package ID: {package.package_ID} Status: {package}")
 
     def check_truck_milage(self):
+        total_milate = 0.0
         for truck in self.delivery_manager.trucks:
+            total_milate += truck.total_miles_travelled
             logger.info(f"Truck {truck.truck_id} has traveled {truck.total_miles_travelled:.4f} miles")
+        logger.info(f"Total miles traveled by all trucks: {total_milate:.4f}")
 
     def run_until_next_delivery(self):
         self.pause()
@@ -212,14 +214,7 @@ def run_gui(delivery_manager: DeliveryManager):
 def run_cli(args, delivery_manager: DeliveryManager):
     delivery_manager.start()
 
-def main()-> None:
-    parser = argparse.ArgumentParser(description="WGUPS Delivery Manager")
-    parser.add_argument(
-        "--cli",
-        action="store_true",
-        help="Run the application in CLI mode instead of GUI mode.",
-    )
-    args = parser.parse_args()
+def main(args)-> None:
 
     # Create hash tables to store the package
     # In python, these are implemented as Dictionaries
@@ -238,7 +233,12 @@ def main()-> None:
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="WGUPS Delivery Manager")
+    parser.add_argument(
+        "--cli",
+        action="store_true",
+        help="Run the application in CLI mode instead of GUI mode.",
+    )
+    args = parser.parse_args()
     # check if CLI arguments are passed
-
-
-    main()
+    main(args)

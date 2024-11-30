@@ -1,7 +1,7 @@
 from enum import Enum
 from logging import getLogger
 
-from wgups.core.utils import convert_deadline, convert_seconds_to_hhmmss
+from wgups.utils import convert_deadline, convert_seconds_to_hhmmss
 
 logger = getLogger(__name__)
 

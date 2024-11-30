@@ -4,7 +4,7 @@ from logging import getLogger
 from typing import Dict, List
 
 import res
-from wgups.core.constants import EOD_IN_SECONDS
+from wgups.constants import EOD_IN_SECONDS
 
 PACKAGE_FILE_NAME = "package_file.csv"
 DISTANCE_FILE_NAME = "distance_data.csv"

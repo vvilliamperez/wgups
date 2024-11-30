@@ -3,7 +3,7 @@ from logging import getLogger
 from typing import List, Dict
 
 from wgups.core.package import PackageStatus
-from wgups.core.utils import get_distance
+from wgups.utils import get_distance
 
 MAX_CAPACITY = 16  # packages
 AVG_SPEED = 18  # MPH
