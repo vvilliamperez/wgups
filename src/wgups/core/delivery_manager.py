@@ -2,12 +2,14 @@ from copy import copy
 from logging import getLogger
 from typing import List, Dict
 
+from wgups.data_structures.avl_tree import AVLTree
 from wgups.core.constants import TRUCK_FLEET_SIZE, DRIVER_CREW_SIZE, START_TIME, SPECIAL_UPDATE_TIME, FLIGHT_ARRIVAL_TIME, \
     EOD_IN_SECONDS
 from wgups.core.delivery_truck import DeliveryTruck, TruckStatus
 from wgups.core.package import PackageStatus, Package
 from wgups.core.special_route import SpecialRoute
 from wgups.core.utils import get_distance
+from wgups.data_structures.min_heap import MinHeap
 
 logger = getLogger(__name__)
 
@@ -19,8 +21,9 @@ class DeliveryManager:
         self.distance_data = distance_data
         self.location_data = location_data
 
-        self.packages = {}
+        self.packages = []
         self.trucks = []
+
         # Create a fleet of trucks, based on the TRUCK_FLEET_SIZE and DRIVER_CREW_SIZE
         for i in range(min(TRUCK_FLEET_SIZE, DRIVER_CREW_SIZE)):
             self.trucks.append(DeliveryTruck(truck_id=i+1, distance_data=self.distance_data))
@@ -45,17 +48,17 @@ class DeliveryManager:
 
     @property
     def packages_at_hub(self):
-        return [package for package in self.packages.values() if package.status == PackageStatus.AT_HUB]
+        return [package for package in self.packages if package.status == PackageStatus.AT_HUB]
 
     @property
     def packages_at_hub_sorted(self):
-        packages_unsorted = [package for package in self.packages.values() if package.status == PackageStatus.AT_HUB]
+        packages_unsorted = [package for package in self.packages if package.status == PackageStatus.AT_HUB]
         packages = sorted(packages_unsorted, key=lambda pkg: pkg.deadline)
         return packages
 
     @property
     def packages_unavailable(self):
-        return [package for package in self.packages.values() if package.status == PackageStatus.UNAVAILABLE]
+        return [package for package in self.packages if package.status == PackageStatus.UNAVAILABLE]
 
     @property
     def packages_on_trucks(self):
@@ -82,7 +85,7 @@ class DeliveryManager:
         :return:
         """
         results = []
-        for package in self.packages.values():
+        for package in self.packages:
             if id is not None and package.package_ID == int(id):
                 results.append(package)
             if destination is not None and package.destination == str(destination):
@@ -100,14 +103,14 @@ class DeliveryManager:
         :param package_id:
         :return:
         """
-        for package in self.packages.values():
+        for package in self.packages:
             if package.package_ID == package_id:
                 return package
         logger.warning(f"Package {package_id} not found")
         return None
 
     def all_packages_delivered(self):
-        return [package for package in self.packages.values() if package.status != PackageStatus.DELIVERED] == []
+        return [package for package in self.packages if package.status != PackageStatus.DELIVERED] == []
 
     def tick(self, seconds=1):
         """
@@ -129,7 +132,7 @@ class DeliveryManager:
             logger.info("\n\n")
             logger.warning(f"Special update!! Updating package 9 with revised address: {revised_address}")
 
-            package_9 = [package for package in self.packages.values() if package.package_ID == "9"][0]
+            package_9 = [package for package in self.packages if package.package_ID == "9"][0]
 
             match package_9.status:
                 # if package 9 is delivered, go get it and redeliver
@@ -224,14 +227,28 @@ class DeliveryManager:
         # Assign packages to trucks, based on the remaining packages and the available drivers
         # Based on all available information, assigns packages to be delivered in order to trucks
 
-        # Sort packages by deadline to prioritize urgent deliveries
-        #self.packages_list = sorted(self.packages.values(), key=lambda pkg: pkg.deadline)
+        # Sort packages by deadline to prioritize urgent deliveries,
+        #
+        #
+        # this uses the avl tree
+        #packages_avl = AVLTree()
+        #for package in self.packages_at_hub:
+        #    packages_avl.insert_package(package)
+        #sorted_packages = packages_avl.in_order_traversal()
+
+        # this uses the min heap
+        packages_heap = MinHeap()
+        for package in self.packages_at_hub:
+            packages_heap.push(package)
+        sorted_packages = []
+        while pack := packages_heap.pop():
+            sorted_packages.append(pack)
+
 
         # Assign packages to trucks using a greedy nearest neighbor algorithm
         # The distance is calculated using the distance data
 
         for truck in trucks_to_assign_routes:
-            packages_at_hub_sorted = self.packages_at_hub_sorted
             current_location = truck.point_a
             manifest = []
 
@@ -240,7 +257,7 @@ class DeliveryManager:
                 nearest_package = None
                 nearest_distance = float('inf')
 
-                for package in packages_at_hub_sorted:
+                for package in sorted_packages:
                     if package not in manifest:
                         distance = get_distance(self.distance_data, current_location, package.destination)
                         if distance < nearest_distance:
@@ -281,15 +298,16 @@ class DeliveryManager:
 
             destination = self.lookup_location(data['full_address'])
             package = Package(package_ID=data['Package ID'], destination=destination, deadline_in_hhmmss=data['Delivery Deadline'], weight=data['Mass'], notes=data['Special Notes'])
-            self.packages[package.package_ID] = package
+            self.packages.append(package)
+
             #logger.info(f"Added package {package.package_ID}")
 
-        logger.info(f"Added {len(self.packages.values())} packages to global system\n\n")
-        self.total_packages = len(self.packages.values())
+        logger.info(f"Added {len(self.packages)} packages to global system\n\n")
+        self.total_packages = len(self.packages)
         logger.info("Handling special delivery notes:")
 
         # Handle special notes
-        packages_with_notes = [package for package in self.packages.values() if package.notes != '']
+        packages_with_notes = [package for package in self.packages if package.notes != '']
         for package in packages_with_notes:
             match package.notes:
                 case 'Can only be on truck 2':

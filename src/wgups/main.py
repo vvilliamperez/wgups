@@ -43,6 +43,9 @@ class WGUPSApp:
         self.package_status_button = tk.Button(root, text="Check Package Status", command=self.check_package_status)
         self.package_status_button.pack(pady=5)
 
+        self.all_package_status_button = tk.Button(root, text="Check All Packages Status", command=self.check_all_package_status)
+        self.all_package_status_button.pack(pady=5)
+
         self.check_truck_milage_button = tk.Button(root, text="Check All Trucks' Mileage", command=self.check_truck_milage)
         self.check_truck_milage_button.pack(pady=5)
 
@@ -55,6 +58,13 @@ class WGUPSApp:
 
         # Periodically update the log window
         self.update_logs()
+
+    @property
+    def simulation_time(self):
+        hours = self.delivery_manager.time // 3600
+        minutes = (self.delivery_manager.time % 3600) // 60
+        seconds = self.delivery_manager.time % 60
+        return f"{hours:02}:{minutes:02}:{seconds:02}"
 
     def start(self):
         if not self.running:
@@ -74,10 +84,7 @@ class WGUPSApp:
         if seconds is not None:
             for _ in range(seconds):
                 if self.delivery_manager.all_packages_delivered():
-                    hours = self.delivery_manager.time // 3600
-                    minutes = (self.delivery_manager.time % 3600) // 60
-                    seconds = self.delivery_manager.time % 60
-                    logger.info(f"Simulation complete. Time: {hours}:{minutes}:{seconds}")
+                    logger.info(f"Simulation complete. Time: {self.simulation_time}")
                     logger.info(
                         f"All {len(self.delivery_manager.packages_delivered)} routes ran. ({len(self.delivery_manager.packages_delivered) - self.delivery_manager.total_packages} extra routes made for special deliveries)")
 
@@ -94,9 +101,28 @@ class WGUPSApp:
             # Show the result in a dialog box
             messagebox.showinfo("Package Status", f"Package ID: {package_id}\nStatus: {package}")
 
+    def check_all_package_status(self):
+        logger.info("ALL PACKAGES REPORT")
+        logger.info(f"{self.simulation_time}")
+        logger.info("Packages at hub:")
+        for package in self.delivery_manager.packages_at_hub:
+            logger.info(f"Package ID: {package.package_ID} Status: {package}")
+
+        logger.info("Packages on trucks:")
+        for package in self.delivery_manager.packages_on_trucks:
+            logger.info(f"Package ID: {package.package_ID} Status: {package}")
+
+        logger.info("Packages delivered:")
+        for package in self.delivery_manager.packages_delivered:
+            logger.info(f"Package ID: {package.package_ID} Status: {package}")
+
+        logger.info("Unavailable Packages:")
+        for package in self.delivery_manager.packages_unavailable:
+            logger.info(f"Package ID: {package.package_ID} Status: {package}")
+
     def check_truck_milage(self):
         for truck in self.delivery_manager.trucks:
-            logger.info(f"Truck {truck.truck_id} has traveled {truck.total_miles_travelled:.2f} miles")
+            logger.info(f"Truck {truck.truck_id} has traveled {truck.total_miles_travelled:.4f} miles")
 
     def run_until_next_delivery(self):
         self.pause()
@@ -105,10 +131,7 @@ class WGUPSApp:
             self.delivery_manager.tick()
 
         if self.delivery_manager.all_packages_delivered():
-            hours = self.delivery_manager.time // 3600
-            minutes = (self.delivery_manager.time % 3600) // 60
-            seconds = self.delivery_manager.time % 60
-            logger.info(f"Simulation complete. Time: {hours}:{minutes}:{seconds}")
+            logger.info(f"Simulation complete. Time: {self.simulation_time}")
             logger.info(
                 f"All {len(self.delivery_manager.packages_delivered)} routes ran. ({len(self.delivery_manager.packages_delivered) - self.delivery_manager.total_packages} extra routes made for special deliveries)")
 
@@ -128,10 +151,7 @@ class WGUPSApp:
             #time.sleep(1)
 
         # convert time to hh:mm:ss
-        hours = self.delivery_manager.time // 3600
-        minutes = (self.delivery_manager.time % 3600) // 60
-        seconds = self.delivery_manager.time % 60
-        logger.info(f"Simulation complete. Time: {hours}:{minutes}:{seconds}")
+        logger.info(f"Simulation complete. Time: {self.simulation_time}")
         logger.info(
             f"All {len(self.delivery_manager.packages_delivered)} routes ran. ({len(self.delivery_manager.packages_delivered) - self.delivery_manager.total_packages} extra routes made for special deliveries)")
 
@@ -176,7 +196,7 @@ def configure_logging(app):
 
     # Add the QueueHandler
     queue_handler = QueueHandler()
-    queue_handler.setFormatter(logging.Formatter("%(asctime)s - %(message)s"))
+    queue_handler.setFormatter(logging.Formatter("%(message)s"))
     root_logger.addHandler(queue_handler)
 
     # Set log level for the root logger

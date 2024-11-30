@@ -29,6 +29,15 @@ class Package:
 
     def __str__(self):
 
+        if self.delivered_at_time is None:
+            return (f"Package ID: {self.package_ID}\n"
+                f"Destination: {self.destination}\n"
+                f"Deadline: {convert_seconds_to_hhmmss(self.deadline)}\n"
+                f"Weight: {self.weight}\n"
+                #f"Notes: {self.notes}\n"
+                f"Status: {self.status}\n"
+                f"On Truck: {self.truck_id}\n")
+                #f"Note on Delivery: {self.note_on_delivery}\n")
 
         return (f"Package ID: {self.package_ID}\n"
                 f"Destination: {self.destination}\n"
@@ -37,7 +46,7 @@ class Package:
                 f"Weight: {self.weight}\n"
                 f"Notes: {self.notes}\n"
                 f"Status: {self.status}\n"
-                f"Truck ID: {self.truck_id}\n"
+                f"On Truck: {self.truck_id}\n"
                 f"Note on Delivery: {self.note_on_delivery}\n")
 
 
