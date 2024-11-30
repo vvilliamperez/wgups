@@ -33,6 +33,8 @@ class DeliveryTruck:
         self.point_a = START_LOCATION
         self.point_b = None
 
+        self.total_miles_travelled = 0.0
+
         # Whatever packages are in the truck, are to be delivered In Order.
         self.packages_on_truck = []
         self.packages_delivered = []
@@ -100,7 +102,9 @@ class DeliveryTruck:
     def update(self, current_time, seconds=1):
         tick_rate_in_hours = seconds / 3600  # convert seconds to hours
         if self.status == TruckStatus.EN_ROUTE:
-            self.distance_to_next_location_in_miles -= float(float(self.speed_in_mph) * tick_rate_in_hours)
+            miles_travelled = float(float(self.speed_in_mph) * tick_rate_in_hours)
+            self.distance_to_next_location_in_miles -= miles_travelled
+            self.total_miles_travelled += miles_travelled
             if self.distance_to_next_location_in_miles <= 0.0:
                 self.deliver(delivery_time=current_time)
         elif self.status == TruckStatus.AT_HUB:
@@ -108,7 +112,9 @@ class DeliveryTruck:
             #logger.info(f"Truck {self.truck_id} is loaded with {len(self.packages_on_truck)} packages")
             return
         elif self.status == TruckStatus.RETURNING:
-            self.distance_to_next_location_in_miles -= float(float(self.speed_in_mph) * tick_rate_in_hours)
+            miles_travelled = float(float(self.speed_in_mph) * tick_rate_in_hours)
+            self.distance_to_next_location_in_miles -= miles_travelled
+            self.total_miles_travelled += miles_travelled
             if self.distance_to_next_location_in_miles <= 0.0:
                 self.dock()
 

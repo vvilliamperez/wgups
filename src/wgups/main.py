@@ -1,6 +1,7 @@
 # William Perez, STUDENT ID 001438917
 import argparse
 import threading
+import time
 import tkinter as tk
 from tkinter import simpledialog, scrolledtext, messagebox
 import logging
@@ -23,8 +24,15 @@ class WGUPSApp:
         self.lock = threading.Lock()
 
         # Create GUI elements
-        self.start_button = tk.Button(root, text="Run to Completion", command=self.start)
+        self.start_button = tk.Button(root, text="Run to Comlpetion", command=self.start)
         self.start_button.pack(pady=5)
+
+        #self.speed_label = tk.Label(root, text="Speed: 1 real-time second = 1 simulation second")
+        #self.speed_label.pack(pady=10)
+
+        #self.speed_slider = tk.Scale(root, from_=1, to=1000, orient=tk.HORIZONTAL, command=self.set_speed)
+        #self.speed_slider.pack(pady=5)
+
 
         self.start_button = tk.Button(root, text="Run Until Next Delivery", command=self.run_until_next_delivery)
         self.start_button.pack(pady=5)
@@ -34,6 +42,9 @@ class WGUPSApp:
 
         self.package_status_button = tk.Button(root, text="Check Package Status", command=self.check_package_status)
         self.package_status_button.pack(pady=5)
+
+        self.check_truck_milage_button = tk.Button(root, text="Check All Trucks' Mileage", command=self.check_truck_milage)
+        self.check_truck_milage_button.pack(pady=5)
 
 
         self.log_label = tk.Label(root, text="Log Messages:")
@@ -83,6 +94,10 @@ class WGUPSApp:
             # Show the result in a dialog box
             messagebox.showinfo("Package Status", f"Package ID: {package_id}\nStatus: {package}")
 
+    def check_truck_milage(self):
+        for truck in self.delivery_manager.trucks:
+            logger.info(f"Truck {truck.truck_id} has traveled {truck.total_miles_travelled:.2f} miles")
+
     def run_until_next_delivery(self):
         self.pause()
         num_packages_delivered = len(self.delivery_manager.packages_delivered)
@@ -110,6 +125,7 @@ class WGUPSApp:
             if self.delivery_manager.all_packages_delivered():
                 break
             self.delivery_manager.tick() # Adjust as needed
+            #time.sleep(1)
 
         # convert time to hh:mm:ss
         hours = self.delivery_manager.time // 3600
@@ -133,6 +149,11 @@ class WGUPSApp:
 
         # Schedule the next log update
         self.root.after(100, self.update_logs)
+
+    def set_speed(self, speed):
+        self.delivery_manager.default_tick_speed = int(speed)
+        logger.info(f"Speed set to {speed}")
+        self.speed_label.config(text=f"1 real-time second = {speed} simulation seconds")
 
 
 def configure_logging(app):
