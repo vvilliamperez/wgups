@@ -3,7 +3,7 @@
 
 # Part A - Self Adjusting Algorithm
 
-I'm using a greedy nearest neighbor algorithm to assign packages to trucks. 
+I'm using a greedy nearest neighbor algorithm with a priority score to assign packages to trucks. 
 It starts with a sorted list of the packages available at the hub using a min-heap.
 Then the algorithm assigns packages to trucks based on the priority score,
 which is calculated based on the deadline and distance to the next package.
