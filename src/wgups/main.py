@@ -23,7 +23,10 @@ class WGUPSApp:
         self.lock = threading.Lock()
 
         # Create GUI elements
-        self.start_button = tk.Button(root, text="Run", command=self.start)
+        self.start_button = tk.Button(root, text="Run to Completion", command=self.start)
+        self.start_button.pack(pady=5)
+
+        self.start_button = tk.Button(root, text="Run Until Next Delivery", command=self.run_until_next_delivery)
         self.start_button.pack(pady=5)
 
         self.step_button = tk.Button(root, text="Tick number of Seconds", command=self.step)
@@ -80,6 +83,26 @@ class WGUPSApp:
             # Show the result in a dialog box
             messagebox.showinfo("Package Status", f"Package ID: {package_id}\nStatus: {package}")
 
+    def run_until_next_delivery(self):
+        self.pause()
+        num_packages_delivered = len(self.delivery_manager.packages_delivered)
+        while not self.delivery_manager.all_packages_delivered() and len(self.delivery_manager.packages_delivered) == num_packages_delivered:
+            self.delivery_manager.tick()
+
+        if self.delivery_manager.all_packages_delivered():
+            hours = self.delivery_manager.time // 3600
+            minutes = (self.delivery_manager.time % 3600) // 60
+            seconds = self.delivery_manager.time % 60
+            logger.info(f"Simulation complete. Time: {hours}:{minutes}:{seconds}")
+            logger.info(
+                f"All {len(self.delivery_manager.packages_delivered)} routes ran. ({len(self.delivery_manager.packages_delivered) - self.delivery_manager.total_packages} extra routes made for special deliveries)")
+
+        else:
+            logger.info("Next package delivered.")
+            newest_package = self.delivery_manager.packages_delivered[-1]
+            logger.info(f"Package ID: {newest_package.package_ID}")
+            messagebox.showinfo("Package Delivered", f"Package ID: {newest_package.package_ID} Status: {newest_package}")
+        self.update_logs()
 
 
     def run_tick_loop(self):
