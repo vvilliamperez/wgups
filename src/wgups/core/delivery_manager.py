@@ -257,8 +257,10 @@ class DeliveryManager:
                         time_until_deadline = max((package.deadline - self.time),
                                                   1)  # Avoid division by zero
                         distance = get_distance(self.distance_data, current_location, package.destination)
-                        # Priority metric: smaller score is better
-                        priority_score = (1 / time_until_deadline) + (distance / 1000)  # Adjust weight as needed
+
+                        # e.g. give a higher “score” to packages that are urgent
+                        # but sort from highest to lowest
+                        priority_score = (package.deadline - self.time) - distance
 
                         if priority_score < best_priority_score:
                             best_package = package
