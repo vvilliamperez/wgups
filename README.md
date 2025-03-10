@@ -72,6 +72,14 @@ This project is implemented using Python 3.13. The code is written with compatib
 
 - tkinter: A simple GUI is built using tkinter. Note that tkinter is not installed by default in some Python distributions, so users may need to ensure that it is available in their Python environment.
 
+The IDE used was PyCharm 2024.2.4 (Professional Edition)
+Build #PY-242.23726.102, built on October 22, 2024
+Licensed to William Perez
+Subscription is active until May 4, 2025.
+For educational use only.
+
+
+
 ### Preprocessed Data
 A `/res` folder contains preprocessed data files used by the algorithm. The following files are included:
 - distance_data.csv: Contains the distances between all locations.
