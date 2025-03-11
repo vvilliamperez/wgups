@@ -9,6 +9,7 @@ from wgups.core.package import PackageStatus, Package
 from wgups.core.special_route import SpecialRoute
 from wgups.utils import get_distance
 from wgups.data_structures.min_heap import MinHeap
+from wgups.data_structures.hash_table import HashTable
 
 logger = getLogger(__name__)
 
@@ -20,8 +21,8 @@ class DeliveryManager:
         self.distance_data = distance_data
         self.location_data = location_data
 
-        # PART E - Hash table to store packages
-        self.packages = {}
+        # PART E - Custom hash table to store packages
+        self.packages = HashTable(initial_capacity=40)
 
         self.trucks = []
 
@@ -78,13 +79,12 @@ class DeliveryManager:
     # Part F - Lookup functions
     def lookup_packages(self, id=None, destination=None, weight=None, status=None):
         """
-        PARD
-        Lookup function for packages
-        :param id:
-        :param destination:
-        :param weight:
-        :param status:
-        :return:
+        Lookup function for packages based on various criteria
+        :param id: Package ID to search for
+        :param destination: Destination to search for
+        :param weight: Weight to search for
+        :param status: Status to search for
+        :return: List of matching packages
         """
         results = []
         for package in self.packages.values():
@@ -98,18 +98,16 @@ class DeliveryManager:
                 results.append(package)
         return results
 
-    # Part F - Lookup functions
     def lookup_package_data_for_package_id(self, package_id):
         """
-        Get all package data for a package ID
-        Lookup function
-        :param package_id:
-        :return:
+        Get package data for a specific package ID using the hash table's lookup
+        :param package_id: Package ID to look up
+        :return: Package object or None if not found
         """
-        if package_id in self.packages:
-            return self.packages[package_id]
-        logger.warning(f"Package {package_id} not found")
-        return None
+        package = self.packages.lookup_by_id(package_id)
+        if package is None:
+            logger.warning(f"Package {package_id} not found")
+        return package
 
     def all_packages_delivered(self):
         return [package for package in self.packages.values() if package.status != PackageStatus.DELIVERED] == []
@@ -258,7 +256,7 @@ class DeliveryManager:
                                                   1)  # Avoid division by zero
                         distance = get_distance(self.distance_data, current_location, package.destination)
 
-                        # e.g. give a higher “score” to packages that are urgent
+                        # e.g. give a higher "score" to packages that are urgent
                         # but sort from highest to lowest
                         priority_score = (package.deadline - self.time) - distance
 
@@ -301,7 +299,7 @@ class DeliveryManager:
 
             destination = self.lookup_location(data['full_address'])
             package = Package(package_ID=data['Package ID'], destination=destination, deadline_in_hhmmss=data['Delivery Deadline'], weight=data['Mass'], notes=data['Special Notes'])
-            self.packages[package.package_ID] = package
+            self.packages.insert(package.package_ID, package)
 
             #logger.info(f"Added package {package.package_ID}")
 
