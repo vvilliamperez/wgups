@@ -3,7 +3,7 @@ import os
 from logging import getLogger
 from typing import Dict, List
 
-import res
+import wgups.res as res
 from wgups.constants import EOD_IN_SECONDS
 
 PACKAGE_FILE_NAME = "package_file.csv"

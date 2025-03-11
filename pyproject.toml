@@ -17,4 +17,5 @@ packages = [
     "wgups",
     "wgups.core",
     "wgups.data_structures"
+    "wgups.res"
 ] 
