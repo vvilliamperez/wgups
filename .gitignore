@@ -1,9 +1,1 @@
-src/wgups/__pycache__/constants.cpython-313.pyc
-src/wgups/__pycache__/utils.cpython-313.pyc
-src/wgups/core/__pycache__/delivery_manager.cpython-313.pyc
-src/wgups/core/__pycache__/package.cpython-313.pyc
-src/wgups/core/__pycache__/special_route.cpython-313.pyc
-src/wgups/core/__pycache__/delivery_truck.cpython-313.pyc
-src/wgups/data_structures/__pycache__/avl_tree.cpython-313.pyc
-src/wgups/data_structures/__pycache__/min_heap.cpython-313.pyc
-src/wgups/data_structures/__pycache__/hash_map.cpython-313.pyc
+*.pyc
