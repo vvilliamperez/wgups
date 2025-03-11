@@ -17,52 +17,67 @@ This algorithm runs anytime there is a truck at the hub, and packages available 
 
 ## 1. Algorithm Overview in Pseudocode
 
-```python
-def run_route_algorithm(trucks_to_assign_routes):
-    """
-    Assign packages to trucks, based on the remaining packages and the available drivers.
-    Prioritize deliveries by deadlines and optimize routes using a greedy nearest neighbor approach.
-    """
+BEGIN run_route_algorithm
+    // Step 1: Sort packages by deadline using min heap
+    CREATE min_heap
+    COLLECT packages from hub
+    
+    // Add packages to min heap
+    BEGIN package sorting
+        GET next package
+        ASSIGN package to min_heap using deadline
+        CONTINUE until no more packages
+    END package sorting
+    
+    CREATE sorted_packages list
+    BEGIN heap extraction
+        GET package from min_heap
+        ASSIGN package to sorted_packages
+        CONTINUE until min_heap empty
+    END heap extraction
 
-    # Step 1: Sort packages by deadline to prioritize urgent deliveries
-    sorted_packages = sort_packages_using_min_heap()
-
-    # Step 2: Assign packages to each truck
-    # Assign packages to trucks using a greedy nearest neighbor algorithm
-    # The distance is calculated using the distance data
-    # The priority score is calculated based on the deadline and distance
-
-    for truck in trucks_to_assign_routes:
-        current_location = truck.point_a
-        manifest = []
-
-        while len(manifest) < truck.available_capacity and sorted_packages:
-            # Calculate priority for each package
-            best_package = None
-            best_priority_score = float('inf')
-
-            for package in sorted_packages:
-                if package not in manifest:
-                    time_until_deadline = max((package.deadline - self.time),
-                                              1)  # Avoid division by zero
-                    distance = get_distance(self.distance_data, current_location, package.destination)
-                    # Priority metric: smaller score is better
-                    priority_score = (1 / time_until_deadline) + (distance / 1000)  # Adjust weight as needed
-
-                    if priority_score < best_priority_score:
-                        best_package = package
-                        best_priority_score = priority_score
-
-            if best_package:
-                manifest.append(best_package)
-                sorted_packages.remove(best_package) # Remove from unassigned packages
-                current_location = best_package.destination
-            else:
-                break
-
-        truck.load(manifest)
-        truck.start_route()
-```
+    // Step 2: Assign packages to each available truck
+    COLLECT trucks at hub
+    BEGIN truck assignment
+        GET next truck
+        ASSIGN starting point to current_location
+        CREATE manifest list
+        
+        BEGIN package assignment
+            CHECK manifest size < truck capacity
+            CHECK sorted_packages not empty
+            
+            ASSIGN infinity to best_score
+            
+            BEGIN find best package
+                GET next package from sorted_packages
+                CHECK package not in manifest
+                    COLLECT deadline information
+                    COLLECT distance information
+                    COLLECT priority score
+                    
+                    CHECK priority score < best_score
+                        UPDATE best_score
+                        UPDATE best_package
+                    END CHECK
+                END CHECK
+            END find best package
+            
+            CHECK best_package exists
+                ASSIGN best_package to manifest
+                UPDATE sorted_packages
+                UPDATE current_location
+            END CHECK
+            
+            CONTINUE until manifest full or no packages
+        END package assignment
+        
+        ASSIGN manifest to truck
+        INITIATE truck route
+        
+        CONTINUE until all trucks checked
+    END truck assignment
+END run_route_algorithm
 
 ## 2. Programming Environment
 
@@ -172,6 +187,35 @@ to test different data structures for performance.
 
 I'm using a min-heap data structure to sort the packages by deadline.
 This is implemented in the `MinHeap` class in `min_heap.py` using a list and helper functions to maintain the heap property.
+
+The relationships between data points in the min-heap are as follows:
+
+1. Temporal Relationships:
+   - Packages are primarily ordered by their delivery deadlines
+   - Early morning deadlines (e.g., 9:00 AM) take precedence over later deadlines (e.g., EOD)
+   - Packages with the same deadline maintain their relative order based on insertion
+   - Delayed packages (e.g., those arriving at 9:05 AM) are not included until they become available
+
+2. Dependency Relationships:
+   - Some packages must be delivered together (e.g., packages 13, 15, and 19)
+   - Certain packages can only be assigned to specific trucks (e.g., "Can only be on truck 2")
+   - Address updates (like package 9) affect the delivery sequence but not the heap structure
+   - Package status (AT_HUB, IN_TRANSIT, DELIVERED) determines whether a package remains in the heap
+
+3. Priority Relationships:
+   - Deadline is the primary sorting factor in the heap
+   - When the route algorithm runs, it combines this deadline priority with:
+     - Distance to the delivery location
+     - Current truck location
+     - Special delivery requirements
+   - This creates a dynamic priority system where the heap's order influences but doesn't solely determine delivery order
+
+The self-adjusting nature of the min-heap helps maintain these relationships by:
+- Automatically promoting urgent packages to the root
+- Allowing efficient removal of the highest priority package when trucks are loaded
+- Supporting dynamic updates when package statuses change (e.g., when delayed packages arrive)
+
+This structure ensures that when the delivery manager needs to assign packages to trucks, it can efficiently access packages in deadline order while maintaining all dependency and special delivery requirements.
 
 # Part E - Hash Table for Packages
 
