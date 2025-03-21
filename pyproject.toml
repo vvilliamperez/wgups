@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wgups"
+version = "0.1.0"
+authors = [
+    { name="William Perez" },
+]
+description = "WGUPS Package Delivery System"
+requires-python = ">=3.8"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+packages = [
+    "wgups",
+    "wgups.core",
+    "wgups.data_structures"
+    "wgups.res"
+] 

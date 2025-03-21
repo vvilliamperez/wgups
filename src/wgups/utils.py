@@ -3,7 +3,7 @@ import os
 from logging import getLogger
 from typing import Dict, List
 
-import res
+import wgups.res as res
 from wgups.constants import EOD_IN_SECONDS
 
 PACKAGE_FILE_NAME = "package_file.csv"
@@ -75,3 +75,9 @@ def convert_deadline(deadline_in_hhmmss):
 
     deadline = deadline_in_hhmmss.split(':')
     return int(deadline[0]) * 3600 + int(deadline[1]) * 60 + int(deadline[2])
+
+def convert_seconds_to_hhmmss(seconds):
+    hours = seconds // 3600
+    minutes = (seconds % 3600) // 60
+    seconds = seconds % 60
+    return f"{hours:02}:{minutes:02}:{seconds:02}"
