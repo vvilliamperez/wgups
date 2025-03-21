@@ -96,7 +96,7 @@ class WGUPSApp:
         package_id = simpledialog.askstring("Package ID", "Enter the Package ID:")
         if package_id:
             # Get the status of the package
-            package = self.delivery_manager.lookup_package_data_for_package_id(package_id)
+            package = self.delivery_manager.packages.lookup_by_id(package_id)
             # Show the result in a dialog box
             messagebox.showinfo("Package Status", f"Package ID: {package_id}\nStatus: {package}")
 

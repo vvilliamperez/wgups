@@ -6,7 +6,8 @@
 I'm using a greedy nearest neighbor algorithm with a priority score to assign packages to trucks. 
 It starts with a sorted list of the packages available at the hub using a min-heap.
 Then the algorithm assigns packages to trucks based on the priority score,
-which is calculated based on the deadline and distance to the next package.
+which is calculated based on the deadline and distance to the next package as well as accounting 
+for clustering groups of packages in the same area. 
 
 The algorithm repeats this for each package, and each truck, 
 until all the trucks are full or there are no more packages left to assign.
@@ -29,10 +30,10 @@ BEGIN run_route_algorithm
         CONTINUE until no more packages
     END package sorting
     
-    CREATE sorted_packages list
+    CREATE available_packages list
     BEGIN heap extraction
         GET package from min_heap
-        ASSIGN package to sorted_packages
+        ASSIGN package to available_packages
         CONTINUE until min_heap empty
     END heap extraction
 
@@ -42,21 +43,35 @@ BEGIN run_route_algorithm
         GET next truck
         ASSIGN starting point to current_location
         CREATE manifest list
+        INITIALIZE estimated_delivery_time
         
         BEGIN package assignment
             CHECK manifest size < truck capacity
-            CHECK sorted_packages not empty
+            CHECK available_packages not empty
             
             ASSIGN infinity to best_score
             
             BEGIN find best package
-                GET next package from sorted_packages
-                CHECK package not in manifest
-                    COLLECT deadline information
-                    COLLECT distance information
-                    COLLECT priority score
+                GET next package from available_packages
+                CALCULATE distance_to_package
+                CALCULATE estimated_delivery_time
+                
+                CHECK can meet deadline
+                    // Calculate cluster score
+                    INITIALIZE cluster_score to 0
+                    BEGIN find nearby packages
+                        GET other_package from available_packages
+                        CALCULATE distance_between packages
+                        IF distance < 2 miles
+                            INCREMENT cluster_score
+                        END IF
+                    END find nearby packages
                     
-                    CHECK priority score < best_score
+                    // Calculate priority score with new weights
+                    CALCULATE time_urgency
+                    SET priority_score = (distance * 3) - (cluster_score * 1.5) + (time_urgency / 14400)
+                    
+                    CHECK priority_score < best_score
                         UPDATE best_score
                         UPDATE best_package
                     END CHECK
@@ -64,16 +79,36 @@ BEGIN run_route_algorithm
             END find best package
             
             CHECK best_package exists
-                ASSIGN best_package to manifest
-                UPDATE sorted_packages
+                APPEND best_package to manifest
+                UPDATE available_packages
                 UPDATE current_location
+                UPDATE estimated_delivery_time
             END CHECK
             
             CONTINUE until manifest full or no packages
         END package assignment
         
-        ASSIGN manifest to truck
-        INITIATE truck route
+        // Step 3: Optimize final route
+        BEGIN route optimization
+            CALCULATE initial_route_distance
+            
+            WHILE route can be improved
+                FOR each possible package swap
+                    CREATE new_route_order
+                    CHECK new route meets all deadlines
+                        CALCULATE new_route_distance
+                        IF new_route_distance < best_distance
+                            UPDATE best_route
+                            UPDATE best_distance
+                            SET improved to true
+                        END IF
+                    END CHECK
+                END FOR
+            END WHILE
+        END route optimization
+        
+        LOAD optimized route to truck
+        START truck route
         
         CONTINUE until all trucks checked
     END truck assignment
@@ -112,25 +147,31 @@ For the purposes of algorithm analysis, I have separated these variables as they
 ### Big O Notation Analysis
 
 - Route Algorithm `run_route_algorithm()::delivery_manager.py` (Greedy Nearest Neighbor with Priority Score Approach):
-  - Time Complexity: $O(t * n^2)$ where n is the number of packages to be delivered and t is the number of trucks at the hub. 
-    - Treating all data as constant, the time complexity is $O(n^2)$.
-This complexity arises from the greedy nearest neighbor approach used to optimize the routes. 
-The algorithm iterates over each truck and calculates each package's priority score based on the deadline and distance to the next package.
-    - Even though the sorting step shown below is $O(n * log(n))$, the dominant time complexity is the route assignment step.
+  - Time Complexity: $O(t * n^3)$ where n is the number of packages to be delivered and t is the number of trucks at the hub. 
+    - Treating all data as constant, the time complexity is $O(n^3)$.
+    This complexity arises from three nested operations:
+      1. Iterating through each package slot (n)
+      2. Evaluating each remaining package as next candidate (n)
+      3. Calculating cluster score by checking nearby packages (n)
+    - Additional $O(n^2)$ complexity from route optimization using 2-opt
+    - Even though the sorting step shown below is $O(n * log(n))$, the dominant time complexity is the route assignment and clustering step.
   - Space Complexity: $O(n)$ due to the linear storage of the data for the priority score calculation for each package. 
+
 - Sorting Step `MinHeap::min_heap.py` (Min-Heap Sort):
-  - Time Complexity: $O(n *log(n))$ due to the use of a min-heap to sort the packages by deadline (not distance).
-    - Building the min-heap: $O(n)$
-    - Extracting the minimum element: $O(log(n))$
-    - Total time complexity: $O(n * log(n))$
-  - Space Complexity: $O(n)$ due to the storage of the sorted packages and the manifest for each truck.
+  - Time Complexity: $O(n * log(n))$ due to the use of a min-heap to sort the packages by deadline.
+    - Building the min-heap: $O(n)$ for n insertions
+    - Each insertion/extraction: $O(log(n))$
+    - Total for n elements: $O(n * log(n))$
+  - Space Complexity: $O(n)$ due to the storage of the packages in the heap array.
+
 - Preprocessing Step:
-  - Time Complexity: $O(n)$ due to the processing of the package data and distance data of fixed size n.
-  - Space Complexity: $O(n)$ due to the storage of the package data and distance data of fixed size n.
+  - Time Complexity: $O(n)$ for single-pass processing of package and distance data.
+  - Space Complexity: $O(n)$ for storing the processed data.
+
 - Overall Complexity:
-  - Time Complexity: $O(k * t * n^2)$ due to the dominant time complexity of the route algorithm, where k is the number of times the route algorithm is called.
-    - Treating all data as constant, the time complexity is $O(n^2)$. 
-  - Space Complexity: $O(k*t*n)$ due to the storage of the sorted packages and the manifest for each truck.
+  - Time Complexity: $O(k * t * n^3)$ due to the dominant time complexity of the route algorithm's nested loops and clustering calculations.
+    - Treating all data as constant, the time complexity is $O(n^3)$. 
+  - Space Complexity: $O(k * t * n)$ due to the storage of packages and manifests across multiple algorithm runs.
     - Treating all data as constant, the space complexity is $O(n)$.
 
 ## 4. Scalability and Adaptability 
@@ -167,6 +208,9 @@ This inherites from `Package` and has a special delivery note.
 
 Data structures are stores in `/data_structures`
 - `MinHeap`: A min-heap data structure used to sort packages by deadline.
+
+- `PackageHashTable`: A hash table data structure used to store and quickly lookup package data by package ID.
+
 - `AVLTree (UNUSED)`: An AVL tree data structure used to store the package data for quick lookup by package ID. (Unused)
 
 The data structures can easily be swapped in and out for the main route claogirhm in `DeliveryManager.py` 
@@ -176,65 +220,83 @@ to test different data structures for performance.
 ## 6.  Strengths and weaknesses of the MinHeap data structure
 
 ### Strengths
-- The MinHeap data structure is efficient for maintaining a sorted order of elements, allowing for quick access to the minimum element.
-- Space-efficient: The MinHeap data structure uses an array-based representation, which is space-efficient compared to other data structures like AVL trees.
-- Easy to implement: I implemented the MinHeap data structure using a list in Python, and other standard library functions, making it easy to understand and maintain.
+- **Efficient Initial Sort**: The MinHeap provides O(n log n) sorting of packages by deadline, ensuring urgent deliveries are considered first in the routing algorithm
+- **Priority Maintenance**: The heap property ensures that packages with earlier deadlines are always at the root
+- **Space Efficiency**: The array-based implementation uses minimal extra space beyond the package references
+- **Quick Access to Most Urgent**: O(1) access to the package with the earliest deadline
+- **Efficient Updates**: O(log n) operations for both inserting new packages and removing the most urgent package
+
 ### Weaknesses
-- My implementation of the MinHeap only sorts by package deadline. It would be more efficient to sort by deadline and distance to the next package.
-- Packages might have the same deadline, so the MinHeap does not guarantee a perfect ordering of packages.
+- **Single Priority Key**: The implementation only sorts by deadline, while the actual routing decisions need to consider multiple factors (distance, clustering, etc.)
+- **Loss of Original Order**: Once packages are extracted from the heap into the available_packages list, the deadline ordering must be balanced against other routing factors
+- **No Direct Access**: Cannot efficiently access or update packages in the middle of the heap
+- **Limited Flexibility**: Cannot easily modify the priority criteria without rebuilding the heap
 
 # Part D - Self Adjusting Data Structure
 
-I'm using a min-heap data structure to sort the packages by deadline.
-This is implemented in the `MinHeap` class in `min_heap.py` using a list and helper functions to maintain the heap property.
+I'm using a min-heap data structure to pre-sort packages by deadline before they are fed into the routing algorithm.
+This is implemented in the `MinHeap` class in `min_heap.py` using a list-based binary heap implementation.
 
-The relationships between data points in the min-heap are as follows:
+The min-heap is used specifically in the `run_route_algorithm` method of `DeliveryManager` where it:
+1. Takes all packages currently at the hub
+2. Sorts them by deadline using the min-heap
+3. Extracts them in deadline order into an `available_packages` list
+4. This pre-sorted list is then used by the routing algorithm to ensure urgent packages are considered first
 
-1. Temporal Relationships:
-   - Packages are primarily ordered by their delivery deadlines
-   - Early morning deadlines (e.g., 9:00 AM) take precedence over later deadlines (e.g., EOD)
-   - Packages with the same deadline maintain their relative order based on insertion
-   - Delayed packages (e.g., those arriving at 9:05 AM) are not included until they become available
+The relationship between the packages being stored in the min-heap is based on the deadline of the packages.
 
-2. Dependency Relationships:
-   - Some packages must be delivered together (e.g., packages 13, 15, and 19)
-   - Certain packages can only be assigned to specific trucks (e.g., "Can only be on truck 2")
-   - Address updates (like package 9) affect the delivery sequence but not the heap structure
-   - Package status (AT_HUB, IN_TRANSIT, DELIVERED) determines whether a package remains in the heap
 
-3. Priority Relationships:
-   - Deadline is the primary sorting factor in the heap
-   - When the route algorithm runs, it combines this deadline priority with:
-     - Distance to the delivery location
-     - Current truck location
-     - Special delivery requirements
-   - This creates a dynamic priority system where the heap's order influences but doesn't solely determine delivery order
-
-The self-adjusting nature of the min-heap helps maintain these relationships by:
-- Automatically promoting urgent packages to the root
-- Allowing efficient removal of the highest priority package when trucks are loaded
-- Supporting dynamic updates when package statuses change (e.g., when delayed packages arrive)
-
-This structure ensures that when the delivery manager needs to assign packages to trucks, it can efficiently access packages in deadline order while maintaining all dependency and special delivery requirements.
+The min-heap maintains the heap property through standard heapification operations:
+- `_heapify_up`: Maintains heap property when pushing new packages
+- `_heapify_down`: Maintains heap property when popping packages
+- `_swap`: Helper function for swapping elements during heapification
 
 # Part E - Hash Table for Packages
 
-I've implemented a hash table in `delivery_manager.py` as a dictionary for the packages. 
+I've implemented a hash table in `hash_table.py` for the packages. 
 I'm using the package ID as the key, and the package object as the value. 
-The package object contains all the extra data including:
-- package ID number
-- delivery address
-- delivery deadline
-- delivery city
-- delivery zip code
-- package weight
-- delivery status 
+Each hash node contains all the regular package object data as set up in `package.py`
 
-# Part F - Lookup Function
+The hash table also supports dictionary-style access:
+```python
+# Get a package by ID
+package = hash_table[package_id]
 
-I've implemented a lookup function `lookup_package_data_for_package_id()` in `delivery_manager.py` that takes a package ID as the input and returns the package object that matches. 
-If the package ID is not found, the function raises an exception. This should not occur in normal opperation.
+# Check if package exists
+if package_id in hash_table:
+    # do something
+```
 
+# Part F - Lookup Functions
+
+The hash table implementation provides several lookup functions with different capabilities:
+
+1. `lookup(self, **criteria)`: A flexible generic lookup function that can search for packages based on any combination of attributes:
+   - `package_ID`: The unique identifier of the package
+   - `destination`: The delivery location address
+   - `deadline`: The delivery deadline in seconds after midnight
+   - `weight`: The package weight
+   - `notes`: Any special notes about the package
+   - `delivered_at_time`: When the package was delivered (in seconds after midnight)
+   - `status`: The package status (PackageStatus enum)
+   - `truck_id`: The ID of the truck the package is assigned to
+   - `note_on_delivery`: Any notes added during delivery
+   
+   Example usage:
+   ```python
+   # Find packages with specific deadline and status
+   packages = hash_table.lookup(deadline=32400, status=PackageStatus.AT_HUB)
+   
+   # Find packages by destination and weight
+   packages = hash_table.lookup(destination="410 S State St", weight=15)
+   ```
+
+2. `lookup_by_id(self, package_id)`: A fast O(1) lookup function specifically for finding packages by their ID
+   - Uses direct hash table access
+   - Returns a single package or None if not found
+   - Most efficient when you know the package ID
+
+If a package ID is not found, the lookup functions will either return None or an empty list, depending on the function used. This allows for safe operation without raising exceptions during normal use.
 
 # Part G - Screenshots of the system at work
 It is difficult to show the system at work in a single screenshot, 
@@ -245,12 +307,12 @@ This last log would be the same as 12pm.
 To accomplish the same log, a user can run the program, and use the `Tick Number of Seconds` button
 to advance the simulation to the desired time. To get to 9:00am, input `3600` seconds. Then press `Check All Packages Status`.
 To get to 10:00am, input another `3600` seconds. Then press `Check All Packages Status`.
-To get to 10:57pm, input another `3600` seconds. Then press `Check All Packages Status`.
-The simulation completes all deliveries by 10:57am.
+To get to 10:56am, input another `3600` seconds. Then press `Check All Packages Status`.
+The simulation completes all deliveries by 10:56am and does not proceed. 
 
 - [9:00am](/0900log.txt)
 - [10:00am](/1000log.txt)
-- [10:57am](/1057log.txt)
+- [10:56am](/1056log.txt)
 
 # Part H - Screenshot of Successful Completion and Total Miles
 
@@ -282,8 +344,103 @@ This could allow for:
 - **rerouting trucks to return packages to the hub for another truck to pick up**
 - **returning to the hub to pick up new packages that have arrived**
 
-# Part K - Data Structure Justification
+# Part K - Data Structure Analysis
 
-The min-heap data structure is a good choice for sorting packages by deadline due to the following reasons:
-- **Efficiency**: The min-heap has a time complexity of $O(n * log(n))$ for sorting the packages by deadline, which is sufficient for a large number of packages.
-- **Space Efficiency**: The min-heap uses an array-based representation, which is essentially a list.
+## K1: Data Structures Used
+
+This implementation uses two primary data structures:
+
+1. **Min Heap** (`MinHeap` class):
+   - Used for sorting packages by deadline before route assignment
+   - Maintains packages in a binary heap where parent nodes have earlier deadlines than children
+   - Implemented using a dynamic array (Python list)
+
+2. **Hash Table** (`PackageHashTable` class):
+   - Used for storing and retrieving package data
+   - Uses chaining for collision resolution via linked lists
+   - Implemented with a fixed initial capacity of 40 buckets
+
+### K1A: Efficiency (Big O Analysis)
+
+**Min Heap Operations:**
+- Insert (push): O(log n)
+- Extract minimum (pop): O(log n)
+- Build heap: O(n)
+- Space complexity: O(n)
+
+**Hash Table Operations:**
+- Insert: O(1) average case, O(n) worst case
+- Lookup by ID: O(1) average case, O(n) worst case
+- Generic lookup: O(n)
+- Space complexity: O(n)
+
+### K1B: Overhead Analysis
+
+**Min Heap Scaling:**
+- Space usage grows linearly with the number of packages (O(n))
+- Each package requires:
+  - Reference to package object
+  - Array overhead for dynamic resizing
+- Memory overhead is minimal as it's a temporary structure used only during route assignment
+
+**Hash Table Scaling:**
+- Space usage is O(n) where n is the number of packages
+- Additional overhead per package:
+  - HashNode object (key, package reference, next pointer)
+  - Collision chain pointers
+- Fixed bucket array size (40) means more collisions as n grows
+- Could be optimized by implementing dynamic resizing
+
+### K1C: System Scale Implications
+
+**Impact of Additional Trucks:**
+- Min Heap: No direct impact on structure
+- Hash Table: No direct impact on structure
+- Indirect effects:
+  - More concurrent package status updates
+  - More frequent lookups for route optimization
+
+**Impact of Additional Cities:**
+- Min Heap: No direct impact on structure
+- Hash Table: No direct impact on structure
+- Indirect effects:
+  - Larger package objects (more address data)
+  - More complex route calculations
+
+## K2: Alternative Data Structures
+
+### K2A: Comparison of Alternatives
+
+**For Package Sorting (Currently Min Heap):**
+1. **Sorted Array:**
+   - Pros: Simple implementation, good cache locality
+   - Cons: O(n) insertion, O(n) removal
+   - Why not chosen: Less efficient for dynamic updates
+
+2. **Binary Search Tree:**
+   - Pros: O(log n) operations if balanced
+   - Cons: Can become unbalanced, more complex implementation
+   - Why not chosen: Min heap better guarantees for priority operations
+
+3. **Priority Queue:**
+   - Pros: Similar performance to min heap
+   - Cons: Less control over implementation details
+   - Why not chosen: Custom min heap provides more flexibility
+
+**For Package Storage (Currently Hash Table):**
+1. **AVL Tree:**
+   - Pros: Guaranteed O(log n) operations, sorted traversal
+   - Cons: More complex implementation, higher memory overhead
+   - Why not chosen: Hash table provides better average-case lookup
+
+2. **Array/List:**
+   - Pros: Simple implementation, good cache locality
+   - Cons: O(n) lookup time, no efficient ID-based access
+   - Why not chosen: Poor performance for random access by ID
+
+3. **Dictionary (Python's built-in):**
+   - Pros: Optimized implementation, similar performance
+   - Cons: Less control over collision handling
+   - Why not chosen: Custom implementation provides better visibility and control
+
+The combination of min heap for deadline sorting and hash table for package storage provides an optimal balance of performance and functionality for this specific application. The min heap efficiently handles the temporal aspects of package routing, while the hash table provides fast package lookup by ID, which is crucial for status updates and route optimization.

@@ -1,68 +1,40 @@
 ALL PACKAGES REPORT
 09:00:00
 Packages at hub:
-Package ID: 11 Status: Package ID: 11
-Destination: Taylorsville City Hall 2600 Taylorsville Blvd
+Package ID: 12 Status: Package ID: 12
+Destination: West Valley Prosecutor 3575 W Valley Central Sta bus Loop
 Deadline: 24:00:00
 Weight: 1
 Status: PackageStatus.AT_HUB
 On Truck: 0
 
-Package ID: 23 Status: Package ID: 23
-Destination: Valley Regional Softball Complex 5100 South 2700 West
+Package ID: 22 Status: Package ID: 22
+Destination: Wheeler Historic Farm 6351 South 900 East
 Deadline: 24:00:00
-Weight: 5
+Weight: 2
 Status: PackageStatus.AT_HUB
 On Truck: 0
 
-Package ID: 27 Status: Package ID: 27
-Destination: International Peace Gardens 1060 Dalton Ave S
+Package ID: 24 Status: Package ID: 24
+Destination: Murray City Museum 5025 State St
 Deadline: 24:00:00
-Weight: 5
+Weight: 7
 Status: PackageStatus.AT_HUB
 On Truck: 0
 
-Package ID: 35 Status: Package ID: 35
-Destination: International Peace Gardens 1060 Dalton Ave S
+Package ID: 26 Status: Package ID: 26
+Destination: City Center of Rock Springs 5383 South 900 East #104
 Deadline: 24:00:00
-Weight: 88
+Weight: 25
 Status: PackageStatus.AT_HUB
 On Truck: 0
 
 Packages on trucks:
-Package ID: 31 Status: Package ID: 31
-Destination: Salt Lake County/United Police Dept 3365 S 900 W
-Deadline: 10:30:00
-Weight: 1
+Package ID: 35 Status: Package ID: 35
+Destination: International Peace Gardens 1060 Dalton Ave S
+Deadline: 24:00:00
+Weight: 88
 Status: PackageStatus.NEXT_STOP
-On Truck: 1
-
-Package ID: 17 Status: Package ID: 17
-Destination: Salt Lake County Mental Health 3148 S 1100 W
-Deadline: 24:00:00
-Weight: 2
-Status: PackageStatus.IN_TRANSIT
-On Truck: 1
-
-Package ID: 4 Status: Package ID: 4
-Destination: Utah DMV Administrative Office 380 W 2880 S
-Deadline: 24:00:00
-Weight: 4
-Status: PackageStatus.IN_TRANSIT
-On Truck: 1
-
-Package ID: 40 Status: Package ID: 40
-Destination: Utah DMV Administrative Office 380 W 2880 S
-Deadline: 10:30:00
-Weight: 45
-Status: PackageStatus.IN_TRANSIT
-On Truck: 1
-
-Package ID: 1 Status: Package ID: 1
-Destination: South Salt Lake Public Works 195 W Oakland Ave
-Deadline: 10:30:00
-Weight: 21
-Status: PackageStatus.IN_TRANSIT
 On Truck: 1
 
 Package ID: 18 Status: Package ID: 18
@@ -86,6 +58,48 @@ Weight: 9
 Status: PackageStatus.IN_TRANSIT
 On Truck: 2
 
+Package ID: 14 Status: Package ID: 14
+Destination: Cottonwood Regional Softball Complex 4300 S 1300 E
+Deadline: 10:30:00
+Weight: 88
+Status: PackageStatus.IN_TRANSIT
+On Truck: 2
+
+Package ID: 15 Status: Package ID: 15
+Destination: Holiday City Office 4580 S 2300 E
+Deadline: 09:00:00
+Weight: 4
+Status: PackageStatus.IN_TRANSIT
+On Truck: 2
+
+Package ID: 16 Status: Package ID: 16
+Destination: Holiday City Office 4580 S 2300 E
+Deadline: 10:30:00
+Weight: 88
+Status: PackageStatus.IN_TRANSIT
+On Truck: 2
+
+Package ID: 34 Status: Package ID: 34
+Destination: Holiday City Office 4580 S 2300 E
+Deadline: 10:30:00
+Weight: 2
+Status: PackageStatus.IN_TRANSIT
+On Truck: 2
+
+Package ID: 29 Status: Package ID: 29
+Destination: Sugar House Park 1330 2100 S
+Deadline: 10:30:00
+Weight: 2
+Status: PackageStatus.IN_TRANSIT
+On Truck: 2
+
+Package ID: 7 Status: Package ID: 7
+Destination: Sugar House Park 1330 2100 S
+Deadline: 24:00:00
+Weight: 8
+Status: PackageStatus.IN_TRANSIT
+On Truck: 2
+
 Package ID: 33 Status: Package ID: 33
 Destination: Columbus Library 2530 S 500 E
 Deadline: 24:00:00
@@ -100,20 +114,6 @@ Weight: 44
 Status: PackageStatus.IN_TRANSIT
 On Truck: 2
 
-Package ID: 7 Status: Package ID: 7
-Destination: Sugar House Park 1330 2100 S
-Deadline: 24:00:00
-Weight: 8
-Status: PackageStatus.IN_TRANSIT
-On Truck: 2
-
-Package ID: 29 Status: Package ID: 29
-Destination: Sugar House Park 1330 2100 S
-Deadline: 10:30:00
-Weight: 2
-Status: PackageStatus.IN_TRANSIT
-On Truck: 2
-
 Package ID: 10 Status: Package ID: 10
 Destination: Rice Terrace Pavilion Park 600 E 900 South
 Deadline: 24:00:00
@@ -121,122 +121,34 @@ Weight: 1
 Status: PackageStatus.IN_TRANSIT
 On Truck: 2
 
-Package ID: 5 Status: Package ID: 5
-Destination: Third District Juvenile Court 410 S State St
+Package ID: 27 Status: Package ID: 27
+Destination: International Peace Gardens 1060 Dalton Ave S
 Deadline: 24:00:00
 Weight: 5
 Status: PackageStatus.IN_TRANSIT
 On Truck: 2
 
-Package ID: 37 Status: Package ID: 37
-Destination: Third District Juvenile Court 410 S State St
-Deadline: 10:30:00
-Weight: 2
-Status: PackageStatus.IN_TRANSIT
-On Truck: 2
-
-Package ID: 8 Status: Package ID: 8
-Destination: Council Hall 300 State St
+Package ID: 23 Status: Package ID: 23
+Destination: Valley Regional Softball Complex 5100 South 2700 West
 Deadline: 24:00:00
-Weight: 9
+Weight: 5
 Status: PackageStatus.IN_TRANSIT
 On Truck: 2
 
-Package ID: 9 Status: Package ID: 9
-Destination: Council Hall 300 State St
+Package ID: 11 Status: Package ID: 11
+Destination: Taylorsville City Hall 2600 Taylorsville Blvd
 Deadline: 24:00:00
-Weight: 2
-Status: PackageStatus.IN_TRANSIT
-On Truck: 2
-
-Package ID: 30 Status: Package ID: 30
-Destination: Council Hall 300 State St
-Deadline: 10:30:00
 Weight: 1
 Status: PackageStatus.IN_TRANSIT
 On Truck: 2
 
-Package ID: 39 Status: Package ID: 39
-Destination: Salt Lake City Streets and Sanitation 2010 W 500 S
-Deadline: 24:00:00
-Weight: 9
-Status: PackageStatus.IN_TRANSIT
-On Truck: 2
-
-Package ID: 13 Status: Package ID: 13
-Destination: Salt Lake City Streets and Sanitation 2010 W 500 S
-Deadline: 10:30:00
-Weight: 2
-Status: PackageStatus.IN_TRANSIT
-On Truck: 2
-
 Packages delivered:
-Package ID: 14 Status: Package ID: 14
-Destination: Cottonwood Regional Softball Complex 4300 S 1300 E
+Package ID: 20 Status: Package ID: 20
+Destination: Housing Auth. of Salt Lake County 3595 Main St
 Deadline: 10:30:00
-Delivered at: 08:06:21
-Weight: 88
-Notes: Must be delivered with 15, 19
-Status: PackageStatus.DELIVERED
-On Truck: 1
-Note on Delivery: None
-
-Package ID: 16 Status: Package ID: 16
-Destination: Holiday City Office 4580 S 2300 E
-Deadline: 10:30:00
-Delivered at: 08:13:02
-Weight: 88
-Notes: Must be delivered with 13, 19
-Status: PackageStatus.DELIVERED
-On Truck: 1
-Note on Delivery: None
-
-Package ID: 34 Status: Package ID: 34
-Destination: Holiday City Office 4580 S 2300 E
-Deadline: 10:30:00
-Delivered at: 08:13:03
-Weight: 2
-Notes:
-Status: PackageStatus.DELIVERED
-On Truck: 1
-Note on Delivery: None
-
-Package ID: 15 Status: Package ID: 15
-Destination: Holiday City Office 4580 S 2300 E
-Deadline: 09:00:00
-Delivered at: 08:13:04
-Weight: 4
-Notes:
-Status: PackageStatus.DELIVERED
-On Truck: 1
-Note on Delivery: None
-
-Package ID: 26 Status: Package ID: 26
-Destination: City Center of Rock Springs 5383 South 900 East #104
-Deadline: 24:00:00
-Delivered at: 08:24:25
-Weight: 25
-Notes:
-Status: PackageStatus.DELIVERED
-On Truck: 1
-Note on Delivery: None
-
-Package ID: 22 Status: Package ID: 22
-Destination: Wheeler Historic Farm 6351 South 900 East
-Deadline: 24:00:00
-Delivered at: 08:28:46
-Weight: 2
-Notes:
-Status: PackageStatus.DELIVERED
-On Truck: 1
-Note on Delivery: None
-
-Package ID: 24 Status: Package ID: 24
-Destination: Murray City Museum 5025 State St
-Deadline: 24:00:00
-Delivered at: 08:39:07
-Weight: 7
-Notes:
+Delivered at: 08:06:41
+Weight: 37
+Notes: Must be delivered with 13, 15
 Status: PackageStatus.DELIVERED
 On Truck: 1
 Note on Delivery: None
@@ -244,19 +156,9 @@ Note on Delivery: None
 Package ID: 21 Status: Package ID: 21
 Destination: Housing Auth. of Salt Lake County 3595 Main St
 Deadline: 24:00:00
-Delivered at: 08:46:48
+Delivered at: 08:06:42
 Weight: 3
-Notes:
-Status: PackageStatus.DELIVERED
-On Truck: 1
-Note on Delivery: None
-
-Package ID: 20 Status: Package ID: 20
-Destination: Housing Auth. of Salt Lake County 3595 Main St
-Deadline: 10:30:00
-Delivered at: 08:46:49
-Weight: 37
-Notes: Must be delivered with 13, 15
+Notes: 
 Status: PackageStatus.DELIVERED
 On Truck: 1
 Note on Delivery: None
@@ -264,19 +166,129 @@ Note on Delivery: None
 Package ID: 19 Status: Package ID: 19
 Destination: Salt Lake City Division of Health Services 177 W Price Ave
 Deadline: 24:00:00
-Delivered at: 08:48:29
+Delivered at: 08:08:22
 Weight: 37
-Notes:
+Notes: 
 Status: PackageStatus.DELIVERED
 On Truck: 1
 Note on Delivery: None
 
-Package ID: 12 Status: Package ID: 12
-Destination: West Valley Prosecutor 3575 W Valley Central Sta bus Loop
+Package ID: 17 Status: Package ID: 17
+Destination: Salt Lake County Mental Health 3148 S 1100 W
 Deadline: 24:00:00
-Delivered at: 08:53:10
+Delivered at: 08:16:23
+Weight: 2
+Notes: 
+Status: PackageStatus.DELIVERED
+On Truck: 1
+Note on Delivery: None
+
+Package ID: 31 Status: Package ID: 31
+Destination: Salt Lake County/United Police Dept 3365 S 900 W
+Deadline: 10:30:00
+Delivered at: 08:18:23
 Weight: 1
-Notes:
+Notes: 
+Status: PackageStatus.DELIVERED
+On Truck: 1
+Note on Delivery: None
+
+Package ID: 4 Status: Package ID: 4
+Destination: Utah DMV Administrative Office 380 W 2880 S
+Deadline: 24:00:00
+Delivered at: 08:24:04
+Weight: 4
+Notes: 
+Status: PackageStatus.DELIVERED
+On Truck: 1
+Note on Delivery: None
+
+Package ID: 40 Status: Package ID: 40
+Destination: Utah DMV Administrative Office 380 W 2880 S
+Deadline: 10:30:00
+Delivered at: 08:24:05
+Weight: 45
+Notes: 
+Status: PackageStatus.DELIVERED
+On Truck: 1
+Note on Delivery: None
+
+Package ID: 1 Status: Package ID: 1
+Destination: South Salt Lake Public Works 195 W Oakland Ave
+Deadline: 10:30:00
+Delivered at: 08:27:46
+Weight: 21
+Notes: 
+Status: PackageStatus.DELIVERED
+On Truck: 1
+Note on Delivery: None
+
+Package ID: 37 Status: Package ID: 37
+Destination: Third District Juvenile Court 410 S State St
+Deadline: 10:30:00
+Delivered at: 08:39:27
+Weight: 2
+Notes: 
+Status: PackageStatus.DELIVERED
+On Truck: 1
+Note on Delivery: None
+
+Package ID: 30 Status: Package ID: 30
+Destination: Council Hall 300 State St
+Deadline: 10:30:00
+Delivered at: 08:42:47
+Weight: 1
+Notes: 
+Status: PackageStatus.DELIVERED
+On Truck: 1
+Note on Delivery: None
+
+Package ID: 8 Status: Package ID: 8
+Destination: Council Hall 300 State St
+Deadline: 24:00:00
+Delivered at: 08:42:48
+Weight: 9
+Notes: 
+Status: PackageStatus.DELIVERED
+On Truck: 1
+Note on Delivery: None
+
+Package ID: 9 Status: Package ID: 9
+Destination: Council Hall 300 State St
+Deadline: 24:00:00
+Delivered at: 08:42:49
+Weight: 2
+Notes: Wrong address listed
+Status: PackageStatus.DELIVERED
+On Truck: 1
+Note on Delivery: None
+
+Package ID: 5 Status: Package ID: 5
+Destination: Third District Juvenile Court 410 S State St
+Deadline: 24:00:00
+Delivered at: 08:46:09
+Weight: 5
+Notes: 
+Status: PackageStatus.DELIVERED
+On Truck: 1
+Note on Delivery: None
+
+Package ID: 13 Status: Package ID: 13
+Destination: Salt Lake City Streets and Sanitation 2010 W 500 S
+Deadline: 10:30:00
+Delivered at: 08:56:50
+Weight: 2
+Notes: 
+Status: PackageStatus.DELIVERED
+On Truck: 1
+Note on Delivery: None
+
+Package ID: 39 Status: Package ID: 39
+Destination: Salt Lake City Streets and Sanitation 2010 W 500 S
+Deadline: 24:00:00
+Delivered at: 08:56:51
+Weight: 9
+Notes: 
 Status: PackageStatus.DELIVERED
 On Truck: 1
 Note on Delivery: None

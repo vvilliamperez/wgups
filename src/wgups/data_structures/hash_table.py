@@ -5,20 +5,15 @@ class HashNode:
         self.package = package  # Package object
         self.next = None
 
-class HashTable:
+class PackageHashTable:
     """
     A custom hash table implementation for the WGUPS package delivery system.
     Uses chaining for collision resolution.
     
     The hash table stores Package objects using their package ID as keys.
-    Each package contains:
-    - package ID number (key)
-    - delivery address
-    - delivery deadline
-    - delivery city
-    - delivery zip code
-    - package weight
-    - delivery status
+
+    Details about the values of packages are in the `package.py` file.
+
     """
     def __init__(self, initial_capacity=40):  # We know we have ~40 packages
         self.capacity = initial_capacity
@@ -154,3 +149,55 @@ class HashTable:
     def __len__(self):
         """Return number of packages in the hash table"""
         return self.size
+
+    def lookup(self, **criteria):
+        """
+        Generic lookup function that returns packages matching all specified criteria.
+        
+        Args:
+            **criteria: Arbitrary keyword arguments representing package attributes to match.
+                       Supported attributes: 
+                       - package_ID: The unique identifier of the package
+                       - destination: The delivery location address
+                       - deadline: The delivery deadline in seconds after midnight
+                       - weight: The package weight
+                       - notes: Any special notes about the package
+                       - delivered_at_time: When the package was delivered (in seconds after midnight)
+                       - status: The package status (PackageStatus enum)
+                       - truck_id: The ID of the truck the package is assigned to
+                       - note_on_delivery: Any notes added during delivery
+        
+        Returns:
+            list: List of packages matching ALL specified criteria. Empty list if no matches found.
+        
+        Example:
+            # Find all packages with specific deadline and status
+            packages = hash_table.lookup(deadline=32400, status=PackageStatus.AT_HUB)
+            
+            # Find packages for a specific destination and weight
+            packages = hash_table.lookup(destination="123 Main St", weight=15)
+            
+            # Find packages on a specific truck with a certain status
+            packages = hash_table.lookup(truck_id=2, status=PackageStatus.IN_TRANSIT)
+        """
+        matching_packages = []
+        
+        # Iterate through all packages in the hash table
+        for bucket in self.buckets:
+            current = bucket
+            while current:
+                package = current.package
+                matches_all = True
+                
+                # Check each criterion against the package
+                for attr, value in criteria.items():
+                    if not hasattr(package, attr) or getattr(package, attr) != value:
+                        matches_all = False
+                        break
+                
+                if matches_all:
+                    matching_packages.append(package)
+                    
+                current = current.next
+        
+        return matching_packages

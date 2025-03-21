@@ -9,7 +9,7 @@ from wgups.core.package import PackageStatus, Package
 from wgups.core.special_route import SpecialRoute
 from wgups.utils import get_distance
 from wgups.data_structures.min_heap import MinHeap
-from wgups.data_structures.hash_table import HashTable
+from wgups.data_structures.hash_table import PackageHashTable
 
 logger = getLogger(__name__)
 
@@ -21,9 +21,9 @@ class DeliveryManager:
         self.distance_data = distance_data
         self.location_data = location_data
 
-        # PART E - Custom hash table to store packages
-        self.packages = HashTable(initial_capacity=40)
 
+        # PART E - Custom hash table to store packages
+        self.packages = PackageHashTable(initial_capacity=50)
         self.trucks = []
 
         # Create a fleet of trucks, based on the TRUCK_FLEET_SIZE and DRIVER_CREW_SIZE
@@ -76,39 +76,6 @@ class DeliveryManager:
             packages.extend(truck.packages_delivered)
         return packages
 
-    # Part F - Lookup functions
-    def lookup_packages(self, id=None, destination=None, weight=None, status=None):
-        """
-        Lookup function for packages based on various criteria
-        :param id: Package ID to search for
-        :param destination: Destination to search for
-        :param weight: Weight to search for
-        :param status: Status to search for
-        :return: List of matching packages
-        """
-        results = []
-        for package in self.packages.values():
-            if id is not None and package.package_ID == int(id):
-                results.append(package)
-            if destination is not None and package.destination == str(destination):
-                results.append(package)
-            if weight is not None and package.weight == float(weight):
-                results.append(package)
-            if status is not None and package.status == PackageStatus[str(status).upper()]:
-                results.append(package)
-        return results
-
-    def lookup_package_data_for_package_id(self, package_id):
-        """
-        Get package data for a specific package ID using the hash table's lookup
-        :param package_id: Package ID to look up
-        :return: Package object or None if not found
-        """
-        package = self.packages.lookup_by_id(package_id)
-        if package is None:
-            logger.warning(f"Package {package_id} not found")
-        return package
-
     def all_packages_delivered(self):
         return [package for package in self.packages.values() if package.status != PackageStatus.DELIVERED] == []
 
@@ -153,9 +120,11 @@ class DeliveryManager:
                     route_to_package_9 = SpecialRoute(package_9.destination, reason="Pick up package 9")
                     route_to_package_9.truck_id = nearest_truck.truck_id
                     nearest_truck.packages_on_truck.insert(1,route_to_package_9)
+                    # Update original package 9's destination
+                    package_9.destination = self.lookup_location(revised_address)
+                    package_9.note_on_delivery = "Delivered to wrong address initially"
                     # delivers package 9, continues route
                     package_9_copy = copy(package_9)
-                    package_9_copy.destination = self.lookup_location(revised_address)
                     package_9_copy.note_on_delivery = "Delivered after correction!"
                     nearest_truck.packages_on_truck.insert(2, package_9_copy)
                     logger.info(f"Truck {nearest_truck.truck_id} is making a special pickup and delivery for package 9")
@@ -217,65 +186,147 @@ class DeliveryManager:
 
     def run_route_algorithm(self, trucks_to_assign_routes):
         """
-        Assign packages to trucks, based on the remaining packages and the available drivers
-        Based on all available information, assigns packages to be delivered in order to trucks
+        Assign packages to trucks, optimizing for minimum distance while meeting deadlines.
+        Uses a modified nearest neighbor algorithm with clustering and deadline constraints.
 
-        :param trucks_to_assign_routes:
-        :return:
+        :param trucks_to_assign_routes: List of trucks available at the hub
+        :return: None
         """
-        # print(trucks_to_assign_routes)
-        # Assign packages to trucks, based on the remaining packages and the available drivers
-        # Based on all available information, assigns packages to be delivered in order to trucks
-
-        # Sort packages by deadline to prioritize urgent deliveries,
-        # this uses the min heap, which is self-adjusting
+        # First, sort packages by deadline to ensure we handle urgent deliveries
         packages_heap = MinHeap()
         for package in self.packages_at_hub:
             packages_heap.push(package)
-        sorted_packages = []
+        
+        # Convert to list for easier manipulation
+        available_packages = []
         while pack := packages_heap.pop():
-            sorted_packages.append(pack)
-
-
-        # Assign packages to trucks using a greedy nearest neighbor algorithm
-        # The distance is calculated using the distance data
+            available_packages.append(pack)
 
         for truck in trucks_to_assign_routes:
-            current_location = truck.point_a
+            current_location = truck.point_a  # Start at hub
             manifest = []
+            estimated_delivery_time = self.time  # Track estimated delivery time
 
-
-            while len(manifest) < truck.available_capacity and sorted_packages:
-                # Calculate priority for each package
+            while len(manifest) < truck.available_capacity and available_packages:
                 best_package = None
-                best_priority_score = float('inf')
+                best_score = float('inf')
+                best_idx = -1
 
-                for package in sorted_packages:
-                    if package not in manifest:
-                        time_until_deadline = max((package.deadline - self.time),
-                                                  1)  # Avoid division by zero
-                        distance = get_distance(self.distance_data, current_location, package.destination)
+                # Look for clusters of packages - try to find packages close to current location
+                for idx, package in enumerate(available_packages):
+                    distance_to_package = get_distance(self.distance_data, current_location, package.destination)
+                    
+                    # Calculate estimated delivery time for this package
+                    travel_time_hours = distance_to_package / truck.speed_in_mph
+                    estimated_time = estimated_delivery_time + (travel_time_hours * 3600)  # Convert hours to seconds
+                    
+                    # Skip if we can't meet the deadline
+                    if package.deadline != EOD_IN_SECONDS and estimated_time > package.deadline:
+                        continue
 
-                        # e.g. give a higher "score" to packages that are urgent
-                        # but sort from highest to lowest
-                        priority_score = (package.deadline - self.time) - distance
+                    # Calculate cluster score - how many other packages are nearby?
+                    cluster_score = 0
+                    for other_package in available_packages:
+                        if other_package != package:
+                            distance_between = get_distance(self.distance_data, package.destination, other_package.destination)
+                            if distance_between < 2:  # Tighter cluster radius for better optimization
+                                cluster_score += 1
 
-                        if priority_score < best_priority_score:
-                            best_package = package
-                            best_priority_score = priority_score
+                    # Priority score calculation:
+                    # 1. Distance is primary factor (higher weight for shorter distances)
+                    # 2. Cluster bonus (packages near each other)
+                    # 3. Time until deadline (normalized and weighted less)
+                    time_urgency = max(1, package.deadline - self.time) if package.deadline != EOD_IN_SECONDS else EOD_IN_SECONDS
+                    
+                    # New priority score formula optimized for shorter routes
+                    priority_score = (distance_to_package * 3) - (cluster_score * 1.5) + (time_urgency / 14400)
+
+                    if priority_score < best_score:
+                        best_score = priority_score
+                        best_package = package
+                        best_idx = idx
 
                 if best_package:
                     manifest.append(best_package)
-                    sorted_packages.remove(best_package) # Remove from unassigned packages
+                    available_packages.pop(best_idx)
                     current_location = best_package.destination
+                    # Update estimated delivery time using correct speed calculation
+                    distance = get_distance(self.distance_data, current_location, best_package.destination)
+                    travel_time_hours = distance / truck.speed_in_mph
+                    estimated_delivery_time += (travel_time_hours * 3600)  # Convert hours to seconds
                 else:
+                    # If we can't find a suitable next package, stop loading this truck
                     break
 
-            truck.load(manifest)
+            # After building manifest, optimize the route order
+            optimized_manifest = self.optimize_route_order(manifest, truck)
+            truck.load(optimized_manifest)
             truck.start_route()
 
+    def optimize_route_order(self, manifest, truck):
+        """
+        Optimize the order of packages in a truck's manifest while respecting deadlines.
+        Uses a simple 2-opt optimization approach.
+        """
+        if len(manifest) <= 2:
+            return manifest
 
+        best_manifest = manifest.copy()
+        best_distance = self.calculate_route_distance(best_manifest, truck)
+        improved = True
 
+        while improved:
+            improved = False
+            for i in range(1, len(manifest) - 2):
+                for j in range(i + 1, len(manifest)):
+                    new_manifest = best_manifest.copy()
+                    # Swap two packages
+                    new_manifest[i], new_manifest[j] = new_manifest[j], new_manifest[i]
+                    
+                    # Check if new route meets all deadlines
+                    if self.route_meets_deadlines(new_manifest, truck):
+                        new_distance = self.calculate_route_distance(new_manifest, truck)
+                        if new_distance < best_distance:
+                            best_manifest = new_manifest
+                            best_distance = new_distance
+                            improved = True
+
+        return best_manifest
+
+    def route_meets_deadlines(self, manifest, truck):
+        """Check if a proposed route meets all package deadlines."""
+        current_time = self.time
+        current_location = truck.point_a
+
+        for package in manifest:
+            distance = get_distance(self.distance_data, current_location, package.destination)
+            travel_time_hours = distance / truck.speed_in_mph
+            delivery_time = current_time + (travel_time_hours * 3600)  # Convert hours to seconds
+            
+            if package.deadline != EOD_IN_SECONDS and delivery_time > package.deadline:
+                return False
+                
+            current_time = delivery_time
+            current_location = package.destination
+
+        return True
+
+    def calculate_route_distance(self, manifest, truck):
+        """Calculate total distance for a proposed route."""
+        if not manifest:
+            return 0
+
+        total_distance = get_distance(self.distance_data, truck.point_a, manifest[0].destination)
+        
+        for i in range(len(manifest) - 1):
+            total_distance += get_distance(self.distance_data, 
+                                        manifest[i].destination,
+                                        manifest[i + 1].destination)
+
+        # Add return distance to hub
+        total_distance += get_distance(self.distance_data, manifest[-1].destination, truck.point_a)
+        
+        return total_distance
 
     def start(self):
         while True:
