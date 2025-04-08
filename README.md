@@ -322,7 +322,7 @@ This last log would be the same as 12pm.
 To accomplish the same log, a user can run the program, and use the `Tick Number of Seconds` button
 to advance the simulation to the desired time. To get to 9:00am, input `3600` seconds. Then press `Check All Packages Status`.
 To get to 10:00am, input another `3600` seconds. Then press `Check All Packages Status`.
-To get to 11:12am, input another `3600` seconds. Then press `Check All Packages Status`.
+To get to 11:12am, press `Run to Complition` seconds. Then press `Check All Packages Status`.
 The simulation completes all deliveries by 11:12am and does not proceed. 
 
 - [9:00am](/0900log.txt)
