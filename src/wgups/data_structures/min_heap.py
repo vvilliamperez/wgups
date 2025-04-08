@@ -1,23 +1,38 @@
+class BundleItem:
+    def __init__(self, packages):
+        self.packages = packages
+        # The deadline of a bundle is the earliest deadline among its packages
+        self.deadline = min(pkg.deadline for pkg in packages)
+
+    def __lt__(self, other):
+        return self.deadline < other.deadline
+
+    def __eq__(self, other):
+        return self.deadline == other.deadline
+
 class MinHeap:
     def __init__(self):
         self.data = []  # List to store heap elements
 
-    def push(self, package):
-        """Adds a package to the heap and maintains heap property."""
-        self.data.append(package)  # Add the package at the end
+    def push(self, item):
+        """Adds an item to the heap and maintains heap property."""
+        if isinstance(item, list):
+            # If it's a list of packages, wrap it in a BundleItem
+            item = BundleItem(item)
+        self.data.append(item)  # Add the item at the end
         self._heapify_up(len(self.data) - 1)  # Restore heap property
 
     def pop(self):
-        """Removes and returns the package with the earliest deadline."""
+        """Removes and returns the item with the earliest deadline."""
         if not self.data:
             return False
         # Swap the root with the last element
         self._swap(0, len(self.data) - 1)
         # Remove the last element (smallest item)
-        min_package = self.data.pop()
+        min_item = self.data.pop()
         # Restore heap property
         self._heapify_down(0)
-        return min_package
+        return min_item.packages if isinstance(min_item, BundleItem) else min_item
 
     def _heapify_up(self, index):
         """Restore the heap property by moving the element at index up."""
