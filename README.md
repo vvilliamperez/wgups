@@ -4,7 +4,7 @@
 # Part A - Self Adjusting Algorithm
 
 I'm using a greedy nearest neighbor algorithm with a priority score to assign packages to trucks. 
-It starts with a sorted list of the packages available at the hub using a min-heap.
+It starts with a sorted list of the packages available at the hub using a bundle-aware min-heap.
 Then the algorithm assigns packages to trucks based on the priority score,
 which is calculated based on the deadline and distance to the next package as well as accounting 
 for clustering groups of packages in the same area. 
@@ -19,25 +19,36 @@ This algorithm runs anytime there is a truck at the hub, and packages available 
 ## 1. Algorithm Overview in Pseudocode
 
 BEGIN run_route_algorithm
-    // Step 1: Sort packages by deadline using min heap
+    // Step 1: Sort packages by deadline using bundle-aware min heap
     CREATE min_heap
     COLLECT packages from hub
     
-    // Add packages to min heap
+    // Add packages to min heap, respecting bundles
     BEGIN package sorting
-        GET next package
-        ASSIGN package to min_heap using deadline
+        GET next bundle from bundles
+        CHECK if any packages in bundle are at hub
+            COLLECT all hub packages from bundle
+            CREATE bundle_item
+            ASSIGN bundle_item to min_heap using earliest deadline
+            MARK packages as used
+        END CHECK
+        
+        GET next package from hub
+        CHECK if package not in any bundle or not used
+            CREATE single_item
+            ASSIGN single_item to min_heap using deadline
+        END CHECK
         CONTINUE until no more packages
     END package sorting
     
-    CREATE available_packages list
+    CREATE available_items list
     BEGIN heap extraction
-        GET package from min_heap
-        ASSIGN package to available_packages
+        GET item from min_heap
+        ASSIGN item to available_items
         CONTINUE until min_heap empty
     END heap extraction
 
-    // Step 2: Assign packages to each available truck
+    // Step 2: Assign items to each available truck
     COLLECT trucks at hub
     BEGIN truck assignment
         GET next truck
@@ -45,59 +56,61 @@ BEGIN run_route_algorithm
         CREATE manifest list
         INITIALIZE estimated_delivery_time
         
-        BEGIN package assignment
+        BEGIN item assignment
             CHECK manifest size < truck capacity
-            CHECK available_packages not empty
+            CHECK available_items not empty
             
             ASSIGN infinity to best_score
             
-            BEGIN find best package
-                GET next package from available_packages
-                CALCULATE distance_to_package
-                CALCULATE estimated_delivery_time
-                
-                CHECK can meet deadline
-                    // Calculate cluster score
-                    INITIALIZE cluster_score to 0
-                    BEGIN find nearby packages
-                        GET other_package from available_packages
-                        CALCULATE distance_between packages
-                        IF distance < 2 miles
-                            INCREMENT cluster_score
-                        END IF
-                    END find nearby packages
+            BEGIN find best item
+                GET next item from available_items
+                CHECK if truck can carry all packages in item
+                    CALCULATE distance_to_item
+                    CALCULATE estimated_delivery_time
                     
-                    // Calculate priority score with new weights
-                    CALCULATE time_urgency
-                    SET priority_score = (distance * 3) - (cluster_score * 1.5) + (time_urgency / 14400)
-                    
-                    CHECK priority_score < best_score
-                        UPDATE best_score
-                        UPDATE best_package
+                    CHECK can meet all deadlines in item
+                        // Calculate cluster score
+                        INITIALIZE cluster_score to 0
+                        BEGIN find nearby items
+                            GET other_item from available_items
+                            CALCULATE distance_between items
+                            IF distance < 2 miles
+                                INCREMENT cluster_score
+                            END IF
+                        END find nearby items
+                        
+                        // Calculate priority score with new weights
+                        CALCULATE time_urgency using earliest deadline in item
+                        SET priority_score = (distance * 3) - (cluster_score * 1.5) + (time_urgency / 14400)
+                        
+                        CHECK priority_score < best_score
+                            UPDATE best_score
+                            UPDATE best_item
+                        END CHECK
                     END CHECK
                 END CHECK
-            END find best package
+            END find best item
             
-            CHECK best_package exists
-                APPEND best_package to manifest
-                UPDATE available_packages
+            CHECK best_item exists
+                APPEND all packages from best_item to manifest
+                UPDATE available_items
                 UPDATE current_location
                 UPDATE estimated_delivery_time
             END CHECK
             
-            CONTINUE until manifest full or no packages
-        END package assignment
+            CONTINUE until manifest full or no items
+        END item assignment
         
         // Step 3: Optimize final route
         BEGIN route optimization
             CALCULATE initial_route_distance
             
-            WHILE route can be improved
-                FOR each possible package swap
+            WHILE route can be improved AND iterations < max_iterations
+                FOR each possible package swap in sorted order
                     CREATE new_route_order
                     CHECK new route meets all deadlines
                         CALCULATE new_route_distance
-                        IF new_route_distance < best_distance
+                        IF new_route_distance < best_distance - epsilon
                             UPDATE best_route
                             UPDATE best_distance
                             SET improved to true
@@ -143,6 +156,7 @@ For the purposes of algorithm analysis, I have separated these variables as they
 - $n$: Number of packages to be delivered.
 - $t$: Number of trucks at the hub.
 - $k$: Number of times the route algorithm is called.
+- $b$: Number of bundles (typically much smaller than n).
 
 ### Big O Notation Analysis
 
@@ -151,18 +165,19 @@ For the purposes of algorithm analysis, I have separated these variables as they
     - Treating all data as constant, the time complexity is $O(n^3)$.
     This complexity arises from three nested operations:
       1. Iterating through each package slot (n)
-      2. Evaluating each remaining package as next candidate (n)
-      3. Calculating cluster score by checking nearby packages (n)
+      2. Evaluating each remaining item as next candidate (n)
+      3. Calculating cluster score by checking nearby items (n)
     - Additional $O(n^2)$ complexity from route optimization using 2-opt
-    - Even though the sorting step shown below is $O(n * log(n))$, the dominant time complexity is the route assignment and clustering step.
+    - The bundle-aware sorting step is $O(n * log(n))$, but the dominant time complexity remains the route assignment and clustering step.
   - Space Complexity: $O(n)$ due to the linear storage of the data for the priority score calculation for each package. 
 
-- Sorting Step `MinHeap::min_heap.py` (Min-Heap Sort):
-  - Time Complexity: $O(n * log(n))$ due to the use of a min-heap to sort the packages by deadline.
+- Bundle-Aware Sorting Step `MinHeap::min_heap.py` (Min-Heap Sort with Bundle Support):
+  - Time Complexity: $O(n * log(n))$ due to the use of a min-heap to sort the items by deadline.
     - Building the min-heap: $O(n)$ for n insertions
     - Each insertion/extraction: $O(log(n))$
+    - Bundle handling adds $O(b)$ overhead for bundle processing
     - Total for n elements: $O(n * log(n))$
-  - Space Complexity: $O(n)$ due to the storage of the packages in the heap array.
+  - Space Complexity: $O(n)$ due to the storage of the items in the heap array.
 
 - Preprocessing Step:
   - Time Complexity: $O(n)$ for single-pass processing of package and distance data.
@@ -312,7 +327,7 @@ The simulation completes all deliveries by 10:56am and does not proceed.
 
 - [9:00am](/0900log.txt)
 - [10:00am](/1000log.txt)
-- [10:56am](/1056log.txt)
+- [11:12am](/1112.txt)
 
 # Part H - Screenshot of Successful Completion and Total Miles
 
