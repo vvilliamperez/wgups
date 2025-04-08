@@ -1,84 +1,7 @@
 ALL PACKAGES REPORT
-10:00:00
+11:12:39
 Packages at hub:
 Packages on trucks:
-Package ID: 31 Status: Package ID: 31
-Destination: Salt Lake County/United Police Dept 3365 S 900 W
-Deadline: 10:30:00
-Weight: 1
-Status: PackageStatus.NEXT_STOP
-On Truck: 1
-
-Package ID: 17 Status: Package ID: 17
-Destination: Salt Lake County Mental Health 3148 S 1100 W
-Deadline: 24:00:00
-Weight: 2
-Status: PackageStatus.IN_TRANSIT
-On Truck: 1
-
-Package ID: 19 Status: Package ID: 19
-Destination: Salt Lake City Division of Health Services 177 W Price Ave
-Deadline: 24:00:00
-Weight: 37
-Status: PackageStatus.IN_TRANSIT
-On Truck: 1
-
-Package ID: 21 Status: Package ID: 21
-Destination: Housing Auth. of Salt Lake County 3595 Main St
-Deadline: 24:00:00
-Weight: 3
-Status: PackageStatus.IN_TRANSIT
-On Truck: 1
-
-Package ID: 20 Status: Package ID: 20
-Destination: Housing Auth. of Salt Lake County 3595 Main St
-Deadline: 10:30:00
-Weight: 37
-Status: PackageStatus.IN_TRANSIT
-On Truck: 1
-
-Package ID: 2 Status: Package ID: 2
-Destination: Columbus Library 2530 S 500 E
-Deadline: 24:00:00
-Weight: 44
-Status: PackageStatus.NEXT_STOP
-On Truck: 2
-
-Package ID: 28 Status: Package ID: 28
-Destination: South Salt Lake Police 2835 Main St
-Deadline: 24:00:00
-Weight: 7
-Status: PackageStatus.IN_TRANSIT
-On Truck: 2
-
-Package ID: 6 Status: Package ID: 6
-Destination: Redwood Park 3060 Lester St
-Deadline: 10:30:00
-Weight: 88
-Status: PackageStatus.IN_TRANSIT
-On Truck: 2
-
-Package ID: 32 Status: Package ID: 32
-Destination: Salt Lake County/United Police Dept 3365 S 900 W
-Deadline: 24:00:00
-Weight: 1
-Status: PackageStatus.IN_TRANSIT
-On Truck: 2
-
-Package ID: 12 Status: Package ID: 12
-Destination: West Valley Prosecutor 3575 W Valley Central Sta bus Loop
-Deadline: 24:00:00
-Weight: 1
-Status: PackageStatus.IN_TRANSIT
-On Truck: 2
-
-Package ID: 10 Status: Package ID: 10
-Destination: Rice Terrace Pavilion Park 600 E 900 South
-Deadline: 24:00:00
-Weight: 1
-Status: PackageStatus.IN_TRANSIT
-On Truck: 2
-
 Packages delivered:
 Package ID: 15 Status: Package ID: 15
 Destination: Holiday City Office 4580 S 2300 E
@@ -186,6 +109,66 @@ Deadline: 10:30:00
 Delivered at: 09:45:51
 Weight: 2
 Notes:
+Status: PackageStatus.DELIVERED
+On Truck: 1
+Note on Delivery: None
+
+Package ID: 31 Status: Package ID: 31
+Destination: Salt Lake County/United Police Dept 3365 S 900 W
+Deadline: 10:30:00
+Delivered at: 10:05:12
+Weight: 1
+Notes:
+Status: PackageStatus.DELIVERED
+On Truck: 1
+Note on Delivery: None
+
+Package ID: 17 Status: Package ID: 17
+Destination: Salt Lake County Mental Health 3148 S 1100 W
+Deadline: 24:00:00
+Delivered at: 10:07:12
+Weight: 2
+Notes:
+Status: PackageStatus.DELIVERED
+On Truck: 1
+Note on Delivery: None
+
+Package ID: 19 Status: Package ID: 19
+Destination: Salt Lake City Division of Health Services 177 W Price Ave
+Deadline: 24:00:00
+Delivered at: 10:15:13
+Weight: 37
+Notes:
+Status: PackageStatus.DELIVERED
+On Truck: 1
+Note on Delivery: None
+
+Package ID: 21 Status: Package ID: 21
+Destination: Housing Auth. of Salt Lake County 3595 Main St
+Deadline: 24:00:00
+Delivered at: 10:16:53
+Weight: 3
+Notes:
+Status: PackageStatus.DELIVERED
+On Truck: 1
+Note on Delivery: None
+
+Package ID: 20 Status: Package ID: 20
+Destination: Housing Auth. of Salt Lake County 3595 Main St
+Deadline: 10:30:00
+Delivered at: 10:16:54
+Weight: 37
+Notes: Must be delivered with 13, 15
+Status: PackageStatus.DELIVERED
+On Truck: 1
+Note on Delivery: None
+
+Package ID: 9 Status: Package ID: 9
+Destination: Third District Juvenile Court 410 S State St
+Deadline: 24:00:00
+Delivered at: 10:45:16
+Weight: 2
+Notes: Wrong address listed
 Status: PackageStatus.DELIVERED
 On Truck: 1
 Note on Delivery: None
@@ -360,10 +343,64 @@ Status: PackageStatus.DELIVERED
 On Truck: 2
 Note on Delivery: None
 
-Unavailable Packages:
-Package ID: 9 Status: Package ID: 9
-Destination: Council Hall 300 State St
+Package ID: 2 Status: Package ID: 2
+Destination: Columbus Library 2530 S 500 E
 Deadline: 24:00:00
-Weight: 2
-Status: PackageStatus.UNAVAILABLE
-On Truck: 0
+Delivered at: 10:12:54
+Weight: 44
+Notes:
+Status: PackageStatus.DELIVERED
+On Truck: 2
+Note on Delivery: None
+
+Package ID: 28 Status: Package ID: 28
+Destination: South Salt Lake Police 2835 Main St
+Deadline: 24:00:00
+Delivered at: 10:16:35
+Weight: 7
+Notes: Delayed on flight---will not arrive to depot until 9:05 am
+Status: PackageStatus.DELIVERED
+On Truck: 2
+Note on Delivery: None
+
+Package ID: 6 Status: Package ID: 6
+Destination: Redwood Park 3060 Lester St
+Deadline: 10:30:00
+Delivered at: 10:28:16
+Weight: 88
+Notes: Delayed on flight---will not arrive to depot until 9:05 am
+Status: PackageStatus.DELIVERED
+On Truck: 2
+Note on Delivery: None
+
+Package ID: 32 Status: Package ID: 32
+Destination: Salt Lake County/United Police Dept 3365 S 900 W
+Deadline: 24:00:00
+Delivered at: 10:33:17
+Weight: 1
+Notes: Delayed on flight---will not arrive to depot until 9:05 am
+Status: PackageStatus.DELIVERED
+On Truck: 2
+Note on Delivery: None
+
+Package ID: 12 Status: Package ID: 12
+Destination: West Valley Prosecutor 3575 W Valley Central Sta bus Loop
+Deadline: 24:00:00
+Delivered at: 10:51:58
+Weight: 1
+Notes:
+Status: PackageStatus.DELIVERED
+On Truck: 2
+Note on Delivery: None
+
+Package ID: 10 Status: Package ID: 10
+Destination: Rice Terrace Pavilion Park 600 E 900 South
+Deadline: 24:00:00
+Delivered at: 11:12:39
+Weight: 1
+Notes:
+Status: PackageStatus.DELIVERED
+On Truck: 2
+Note on Delivery: None
+
+Unavailable Packages:
